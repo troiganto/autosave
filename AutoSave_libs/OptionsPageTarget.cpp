@@ -232,14 +232,26 @@ void OptionsPageTarget::onTimer(UINT_PTR timerId)
 
 void OptionsPageTarget::updateCurrentWindowCaptionEdit()
 {
+	// Naive approach would fuck with the text selection.
+	static wstring currentText;
+	
 	POINT point;
 	GetCursorPos(&point);
 
 	HWND window = ChildWindowFromPointEx(
 		GetDesktopWindow(), point, CWP_SKIPINVISIBLE);
-
-	SetDlgItemText(m_hwnd, IDC_SETTINGS_CURWINEDIT,
-		Matcher::getWindowText(window).data());
+	/* Maybe the following is a good addition?
+	if (window == GetParent(m_hwnd))
+		return;
+	*/
+	
+	wstring newText = Matcher::getWindowText(window);
+	if (newText != currentText)
+	{
+		currentText = newText;
+		SetDlgItemText(m_hwnd, IDC_SETTINGS_CURWINEDIT,
+			currentText.data());
+	}
 }
 
 
