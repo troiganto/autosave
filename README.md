@@ -58,7 +58,7 @@ This allows AutoSave to be started as soon as the Windows session has started.
 ### Uninstall
 
 AutoSave does the following changes on the user's machine:
-* It saves its configuration in the user's registry (the location is HKEY_CURRENT_USER\Software\Broken AutoSave);
+* It saves its configuration in the user's registry (the location is ```HKEY_CURRENT_USER\Software\Broken AutoSave```);
 * It may create a shortcut in the start-up directory if the user asks it to;
 * The user may create Connected Shortcuts with it.
 

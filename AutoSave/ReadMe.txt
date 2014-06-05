@@ -37,26 +37,11 @@ Resource.h
     This is the standard header file, which defines new resource IDs.
     Microsoft Visual C++ reads and updates this file.
 
-AutoSave.ico
-    This is an icon file, which is used as the application's icon (32x32).
-    This icon is included by the main resource file AutoSave.rc.
-
-small.ico
-    This is an icon file, which contains a smaller version (16x16)
-    of the application's icon. This icon is included by the main resource
-    file AutoSave.rc.
-
 /////////////////////////////////////////////////////////////////////////////
 Other standard files:
 
 StdAfx.h, StdAfx.cpp
     These files are used to build a precompiled header (PCH) file
     named AutoSave.pch and a precompiled types file named StdAfx.obj.
-
-/////////////////////////////////////////////////////////////////////////////
-Other notes:
-
-AppWizard uses "TODO:" comments to indicate parts of the source code you
-should add to or customize.
 
 /////////////////////////////////////////////////////////////////////////////
