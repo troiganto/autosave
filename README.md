@@ -77,6 +77,6 @@ The repository contains the following sub-folders:
 * AutoSave_tests: Project folder for unit-tests. Tests are written for Visual Studio's built-in test framework.
 * AutoSave Test Files: Contains a few files the unit tests use to check on AutoSave.
 * AutoSave Icons: Contains the ```*.ico``` files for AutoSave. They are provided as SVG files. This folder also contains a quick and dirty Python script that builds the correct ICO files. This script depends on Inkscape and ImageMagick.
-* Map: A mostly useless diagram showing the relations between the classes and namespaces used in AutoSave. It looks a lot like UML, but contains a lot less information. Only for viewing purposes.
+* Map: A diagram showing the relations between the most important classes and namespaces in AutoSave. It disregards the "utility" classes since these may be used by any class and including them in that map would make it even less readable than it already is.
 
 

@@ -1,0 +1,39 @@
+The following icons are necessary:
+
+Names:
+- default icon: main
+- countdown icons: cd5...cd1
+- before sending: cd0
+- successful sending: ok
+- disabled mode: disabled
+
+
+Main icon:
+64x64, 48x48, 24x24 pixels
+24, 8, and 4 bit
+
+- 1 default icon
+
+Icons used at several places:
+32x32, 48x48 pixels
+24, 8, and 4 bit
+
+- 1 default icon
+- 1 icon for disabled mode
+
+
+Notification icons:
+16x16 pixels
+24, 8, and 4 bit
+
+- 1 default icon
+- 5 icons for the countdown
+- 1 icon for the time between reaching zero and actually sending
+- 1 icon for successful sending
+- 1 icon for disabled mode
+
+
+By icon:
+main: 64, 48, 32, 24, 16 (24, 8, 4)
+disabled: 48, 32, 16 (24, 8, 4)
+cd5-cd0, ok: 16 (24, 8, 4)

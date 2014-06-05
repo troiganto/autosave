@@ -1,0 +1,243 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Util">
+      <UniqueIdentifier>{0ba9cc15-194d-4e4b-bc2f-7bd721723726}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UI">
+      <UniqueIdentifier>{335a3a35-fa46-457b-a6c3-f95e259f8a9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Configuration">
+      <UniqueIdentifier>{326c7053-3ab9-4ada-b5ef-418aa361411e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UI\Uninstaller">
+      <UniqueIdentifier>{35b28ed2-b982-46ad-80bb-ec0dab996aed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UI\ShortcutsDialog">
+      <UniqueIdentifier>{513e8f8b-0959-41eb-9aa4-79fb8c533e01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Configuration">
+      <UniqueIdentifier>{f4c4a65b-c13d-4fe5-8a09-97b6c5372625}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Util">
+      <UniqueIdentifier>{34e3e069-1bbd-4bb3-a65b-98362091cde7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI">
+      <UniqueIdentifier>{c4f4b438-047c-4e7f-9eb3-5552c097a23b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\Uninstaller">
+      <UniqueIdentifier>{5e8078db-ad3b-42b9-858f-63c2ab83dc4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI\ShortcutsDialog">
+      <UniqueIdentifier>{ccede530-3bc2-421d-9939-09bd17edde72}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NotifyIcon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AppConnection.h">
+      <Filter>Header Files\Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="Matcher.h">
+      <Filter>Header Files\Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="MiscSettings.h">
+      <Filter>Header Files\Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="Configuration.h">
+      <Filter>Header Files\Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionsPageBase.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionsPageMore.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionsPageTarget.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionsPageUninstall.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="OptionsWindow.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="ShortcutsDialog.h">
+      <Filter>Header Files\UI\ShortcutsDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="ShortcutsDropTarget.h">
+      <Filter>Header Files\UI\ShortcutsDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="Uninstaller.h">
+      <Filter>Header Files\UI\Uninstaller</Filter>
+    </ClInclude>
+    <ClInclude Include="ShortcutsDisconnector.h">
+      <Filter>Header Files\UI\Uninstaller</Filter>
+    </ClInclude>
+    <ClInclude Include="Shortcut.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="RegistryAccess.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandLineParser.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="TemporaryShortcutFile.h">
+      <Filter>Header Files\UI\ShortcutsDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="DocumentIconFinder.h">
+      <Filter>Header Files\UI\ShortcutsDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="AutostartShortcut.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="PeriodicSender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoSaveException.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="OleUtils.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UninstallerShortcutsListbox.h">
+      <Filter>Header Files\UI\Uninstaller</Filter>
+    </ClInclude>
+    <ClInclude Include="ConnectedShortcut.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UninstallerShortcutsListTooltip.h">
+      <Filter>Header Files\UI\Uninstaller</Filter>
+    </ClInclude>
+    <ClInclude Include="GdiUtils.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="IconBitmap.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NotifyIcon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AppConnection.cpp">
+      <Filter>Source Files\Configuration</Filter>
+    </ClCompile>
+    <ClCompile Include="Matcher.cpp">
+      <Filter>Source Files\Configuration</Filter>
+    </ClCompile>
+    <ClCompile Include="MiscSettings.cpp">
+      <Filter>Source Files\Configuration</Filter>
+    </ClCompile>
+    <ClCompile Include="Configuration.cpp">
+      <Filter>Source Files\Configuration</Filter>
+    </ClCompile>
+    <ClCompile Include="Shortcut.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandLineParser.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="RegistryAccess.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="ShortcutsDialog.cpp">
+      <Filter>Source Files\UI\ShortcutsDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="ShortcutsDropTarget.cpp">
+      <Filter>Source Files\UI\ShortcutsDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Uninstaller.cpp">
+      <Filter>Source Files\UI\Uninstaller</Filter>
+    </ClCompile>
+    <ClCompile Include="ShortcutsDisconnector.cpp">
+      <Filter>Source Files\UI\Uninstaller</Filter>
+    </ClCompile>
+    <ClCompile Include="OptionsPageBase.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="OptionsPageMore.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="OptionsPageTarget.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="OptionsPageUninstall.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="OptionsWindow.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="TemporaryShortcutFile.cpp">
+      <Filter>Source Files\UI\ShortcutsDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="DocumentIconFinder.cpp">
+      <Filter>Source Files\UI\ShortcutsDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="AutostartShortcut.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="PeriodicSender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoSaveException.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="OleUtils.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="UninstallerShortcutsListbox.cpp">
+      <Filter>Source Files\UI\Uninstaller</Filter>
+    </ClCompile>
+    <ClCompile Include="ConnectedShortcut.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="UninstallerShortcutsListTooltip.cpp">
+      <Filter>Source Files\UI\Uninstaller</Filter>
+    </ClCompile>
+    <ClCompile Include="GdiUtils.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="IconBitmap.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
