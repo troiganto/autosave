@@ -14,7 +14,7 @@ After the specified amount of time has passed (5 minutes by default), AutoSave c
 If no target window is active, AutoSave waits until one gets activated.
 If AutoSave detects that no target window is open at all, it resets its timer back to the beginning.
 
-If the timer is at zero *and* a target window currently has the focus, AutoSave simulates the keystrokes specified in the configuration (```Ctrl+S``` by default.) It does so using the [SendInput](http://msdn.microsoft.com/en-us/library/windows/desktop/ms646310%28v=vs.85%29.aspx) function.
+If the timer is at zero *and* a target window is active, AutoSave simulates the keystrokes specified in the configuration (```Ctrl+S``` by default.) It does so using the [SendInput](http://msdn.microsoft.com/en-us/library/windows/desktop/ms646310%28v=vs.85%29.aspx) function.
 
 Right-clicking on the notification icon allows the user to temporarily disable AutoSave, to shut it down, and to open the options window.
 The options window gives access to the configuration and all additional tools.
