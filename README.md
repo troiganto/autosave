@@ -22,15 +22,15 @@ The options window gives access to the configuration and all additional tools.
 ### Targeting Windows
 
 AutoSave only sends keyboard input, if a the active window matches a given filter. There are two ways to specify which windows to target:
-* Caption matching (by normally starting AutoSave),
+* Title matching (by normally starting AutoSave),
 * Connecting to another application (by using Connected Shortcuts).
 
-#### Caption matching
+#### Title Matching
 
-By default, AutoSave lets the user specify a phrase to filter windows by. AutoSave then targets a window only, if the window's caption *contains* the given phrase. This comparison is case-insensitive.
+By default, AutoSave lets the user specify a phrase to filter windows by. AutoSave then targets a window only, if the window's title *contains* the given phrase. This comparison is case-insensitive.
 
-This means that if the user specifies "gimp" as the filter phrase, then AutoSave simulates pressing ```Ctrl+S``` as soon as the timer is up *and* the active window's caption contains "gimp".
-This could be the main window of [GIMP](http://gimp.org), but it could also be a folder names "gimp" being open in the Windows Explorer.
+This means that if the user specifies "gimp" as the filter phrase, then AutoSave simulates pressing ```Ctrl+S``` as soon as the timer is up *and* the active window's title bare contains "gimp".
+This could be the main window of [GIMP](http://gimp.org), but it could also be a folder named "gimp" being open in the Windows Explorer.
 It's up to the user to enter an unambiguous phrase.
 
 Additionally, AutoSave allows the user to filter windows using [regular expressions](http://simple.wikipedia.org/wiki/Regular_expression) instead of normal text comparison.
