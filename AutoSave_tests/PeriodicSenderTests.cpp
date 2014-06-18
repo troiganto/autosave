@@ -30,6 +30,24 @@ namespace AutoSave_tests
 	{
 	public:
 		
+		TEST_METHOD(TestNoKeyPressed)
+		{
+			// Prepare ctrl event.
+			INPUT input = { 0 };
+			input.type = INPUT_KEYBOARD;
+			input.ki.wVk = VK_CONTROL;
+			input.ki.dwFlags = 0;
+
+			// Press ctrl key.
+			Assert::AreEqual<UINT>(1, SendInput(1, &input, sizeof(input)));
+			Assert::IsFalse(PeriodicSender::noKeyPressed());
+
+			// Release ctrl key.
+			input.ki.dwFlags = KEYEVENTF_KEYUP;
+			Assert::AreEqual<UINT>(1, SendInput(1, &input, sizeof(input)));
+			Assert::IsTrue(PeriodicSender::noKeyPressed());
+		}
+
 		TEST_METHOD(TestSendingInputs)
 		{
 			AppConnection ac;

@@ -143,3 +143,22 @@ void PeriodicSender::insertKey(vector<INPUT>* pList, WORD key)
 	input.ki.dwFlags = 0;
 	pList->insert(pList->begin() + middle, input);
 }
+
+
+
+// Used to make sure the input queue doesn't get confused.
+// Returns false when a key is pressed or an error occurs.
+bool PeriodicSender::noKeyPressed()
+{
+	BYTE lastKeyOfInterest = VK_F24;
+	for (BYTE key = 0; key <= lastKeyOfInterest; ++key)
+	{
+		if ((GetAsyncKeyState(key) & 0x8000) != 0)
+			return false;
+	}
+	return true;
+}
+
+
+
+

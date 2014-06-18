@@ -29,6 +29,7 @@ public:
 	void resetDelay();
 
 	static UINT sendKeys(WORD hotkey);
+	static bool noKeyPressed();
 
 	enum SenderMessage {
 		SM_START = WM_USER + 0x0100,

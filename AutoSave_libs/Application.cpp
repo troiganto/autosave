@@ -179,7 +179,6 @@ void Application::OnCreate()
 	if (!startingShortcut.empty())
 		ShortcutsDisconnector::registerConnectedShortcuts(startingShortcut);
 
-
 	m_hContextMenu = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDC_MENU));
 	m_sender.setWindow(m_hwnd);
 	m_icon.setWindow(m_hwnd);
@@ -316,7 +315,7 @@ void Application::onSenderAtLessThanFive(UINT_PTR secondsLeft)
 
 void Application::onSenderAtZero()
 {
-	if (m_cfg.windowMatch(GetForegroundWindow()))
+	if (m_sender.noKeyPressed() && m_cfg.windowMatch(GetForegroundWindow()))
 	{
 		PeriodicSender::sendKeys(m_cfg.settings.getHotkey());
 		m_sender.resetCountdown();
