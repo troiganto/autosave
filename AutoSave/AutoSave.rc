@@ -128,10 +128,10 @@ CAPTION "Create a Connected Shortcut"
 FONT 8, "Ms Shell Dlg"
 {
     CONTROL         "", 100, WC_STATIC, SS_ETCHEDHORZ, 7, 11, 198, 1, WS_EX_LEFT
-    LTEXT           "App or file to be connected", 101, 7, 7, 86, 8, SS_LEFT, WS_EX_LEFT
+    LTEXT           "1. Drop an app or file in the box below", 101, 7, 7, 120, 8, SS_LEFT, WS_EX_LEFT
     CONTROL         "", IDC_SHORTCUTS_SOURCE, WC_LISTVIEW, WS_TABSTOP | WS_BORDER | LVS_ALIGNLEFT | LVS_NOSCROLL | LVS_SHAREIMAGELISTS | LVS_SINGLESEL | LVS_SMALLICON | LVS_AUTOARRANGE, 7, 19, 198, 28, WS_EX_LEFT
     CONTROL         "", 104, WC_STATIC, SS_ETCHEDHORZ, 7, 60, 198, 1, WS_EX_LEFT
-    LTEXT           "Connected Shortcut", 105, 7, 56, 64, 8, SS_LEFT, WS_EX_LEFT
+    LTEXT           "2. Drag the shortcut below onto your desktop", 105, 7, 56, 143, 8, SS_LEFT, WS_EX_LEFT
     CONTROL         "", IDC_SHORTCUTS_RESULT, WC_LISTVIEW, WS_TABSTOP | WS_BORDER | LVS_ALIGNLEFT | LVS_NOSCROLL | LVS_SHAREIMAGELISTS | LVS_SINGLESEL | LVS_SMALLICON | LVS_AUTOARRANGE, 7, 68, 198, 28, WS_EX_LEFT
     CONTROL         "", 103, WC_STATIC, SS_ETCHEDHORZ, 7, 109, 198, 1, WS_EX_LEFT
     AUTOCHECKBOX    "Use custom settings for this connection", IDC_SHORTCUTS_CUSTOMCHECK, 7, 105, 139, 8, 0, WS_EX_LEFT
@@ -250,15 +250,15 @@ STRINGTABLE
     IDS_VERBOSITY_DESC1           "1: Notification icon turns yellow before saving."
     IDS_VERBOSITY_DESC2           "2: Notification balloon that AutoSave has started."
     IDS_VERBOSITY_DESC3           "3: Notification balloon before saving."
-    IDS_SLV_EMPTYSOURCE           "1. Drop an app or file in this field."
-    IDS_SLV_EMPTYRESULT           "2. Drag the Connected Shortcut out of this field to create it."
+    IDS_SLV_EMPTYSOURCE           "Choose a file to connect"
+    IDS_SLV_EMPTYRESULT           "No file given yet"
     IDS_SLV_SOURCEERROR           "An error occured while trying to read the dropped file."
     IDS_SLV_RESULTERROR           "An error occured while creating the Connected Shortcut."
     IDS_SLV_WAIT                  "Please wait a second ..."
     IDS_TARGET_EMPTY              "Please enter a window filter in the form above."
     IDS_TARGET_BADREGEX           "The regular expression contains errors."
     IDS_TARGET_NOWINDOWS          "No matching windows currently open."
-    IDS_ERROR_NODROPPEDSHORTCUTS  "Couldn't find any Connected Shortcuts among the dropped files."
+    IDS_ERROR_NODROPPEDSHORTCUTS  "Couldn't find any Connected Shortcuts among the dropped files"
 }
 
 
