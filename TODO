@@ -1,2 +1,1 @@
--  The instructions in the Create Connected Shortcuts dialog are easily ignored.
--  NIM_SETVERSION does not work in the release build. The reason is unknown so far.
+- NIM_SETVERSION does not work in the release build. The reason is unknown so far.
