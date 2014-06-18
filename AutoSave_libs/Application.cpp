@@ -77,10 +77,13 @@ LRESULT Application::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 			OnTimer();
 			return 0;
 
-		case NotifyIcon::message:
+		case NotifyIcon::message: {
+			POINT p;
+			m_icon.estimateCursorPos(&p);
 			OnNotifyIcon(LOWORD(lParam), HIWORD(lParam),
-				GET_X_LPARAM(wParam), GET_Y_LPARAM(wParam));
+				p.x, p.y);
 			return 0;
+		}
 
 		case PeriodicSender::SM_ATZERO:
 			onSenderAtZero();
@@ -143,7 +146,7 @@ void Application::OnNotifyIcon(WORD msg, WORD iconId, int x, int y)
 		*pArgs = { this, &isWaitingForSecondClick, iconId, x, y };
 		CloseHandle(CreateThread(NULL, 12, onNotifyLClickThread, pArgs, 0, NULL));
 	}
-	else if (msg == WM_CONTEXTMENU)
+	else if (msg == WM_RBUTTONUP)
 	{
 		isWaitingForSecondClick = false;
 		onNotifyIconRClick(iconId, x, y);

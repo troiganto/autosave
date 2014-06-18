@@ -20,6 +20,7 @@ public:
 	void hide();
 
 	void getRect(RECT* pIconRect) const;
+	void estimateCursorPos(POINT* pPoint) const;
 
 	void setTip(LPCTSTR appName, LPCTSTR status = nullptr);
 

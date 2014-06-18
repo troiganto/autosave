@@ -55,13 +55,10 @@ void NotifyIcon::show(int icon)
 		}
 		else {
 			nid.uFlags |= NIF_MESSAGE | NIF_SHOWTIP;
-			nid.uCallbackMessage = message;
+			nid.uCallbackMessage = NotifyIcon::message;
 			nid.uVersion = NOTIFYICON_VERSION_4;
-
 			if (Shell_NotifyIcon(NIM_ADD, &nid))
 				m_isIconVisible = true;
-
-			assert(Shell_NotifyIcon(NIM_SETVERSION, &nid));
 		}
 	}
 }
@@ -98,6 +95,25 @@ void NotifyIcon::getRect(RECT* pIconRect) const
 	if (Shell_NotifyIconGetRect(&niid, pIconRect) != S_OK)
 	{
 		*pIconRect = { 0 };
+	}
+}
+
+
+
+// Compatibility function because Shell_NotifyIcon seems to
+// refuse accept NIM_SETVERSION (albeit returning TRUE).
+// This function returns a good point for the context menu to appear at.
+void NotifyIcon::estimateCursorPos(POINT* pPoint) const
+{
+	RECT iconRect;
+	getRect(&iconRect);
+	GetCursorPos(pPoint);
+
+	if (PtInRect(&iconRect, *pPoint) == 0)
+	{
+		// Point somewhere unexpected, get the middle of the rect instead.
+		pPoint->x = (iconRect.left + iconRect.right) / 2;
+		pPoint->y = (iconRect.top + iconRect.bottom) / 2;
 	}
 }
 
