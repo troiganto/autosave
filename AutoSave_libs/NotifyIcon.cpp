@@ -56,7 +56,7 @@ void NotifyIcon::show(int icon)
 		else {
 			nid.uFlags |= NIF_MESSAGE | NIF_SHOWTIP;
 			nid.uCallbackMessage = NotifyIcon::message;
-			nid.uVersion = NOTIFYICON_VERSION_4;
+			nid.uVersion = NOTIFYICON_VERSION_4; // Yes, this line is indeed useless.
 			if (Shell_NotifyIcon(NIM_ADD, &nid))
 				m_isIconVisible = true;
 		}
