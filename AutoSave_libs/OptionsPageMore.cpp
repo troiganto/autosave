@@ -257,7 +257,7 @@ void OptionsPageMore::onApply(bool fromApplyButton)
 		SetWindowLongPtr(m_hwnd, DWLP_MSGRESULT, PSNRET_INVALID);
 	}
 	else {
-		m_newSettings = m_oldSettings;
+		m_oldSettings = m_newSettings;
 		SetWindowLongPtr(m_hwnd, DWLP_MSGRESULT, PSNRET_NOERROR);
 	}
 }
