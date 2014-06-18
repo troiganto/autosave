@@ -65,7 +65,7 @@ namespace {
 	void presetDC(HDC hdc)
 	{
 		SelectFont(hdc, GetStockFont(ANSI_VAR_FONT));
-		SetTextColor(hdc, GetSysColor(COLOR_WINDOWTEXT));
+		SetTextColor(hdc, GetSysColor(COLOR_GRAYTEXT));
 		SetBkColor(hdc, GetSysColor(COLOR_WINDOW));
 	}
 
