@@ -127,7 +127,15 @@ UINT PeriodicSender::sendKeys(WORD hotkey)
 		insertKey(&inputs, VK_MENU);
 	insertKey(&inputs, LOBYTE(hotkey));
 	
-	int inputsSent = SendInput((UINT) inputs.size(), inputs.data(), sizeof(INPUT));
+	// Instead of sending all six input events at once, we send them
+	// sequentially because otherwise, Adobe Illustrator seems to
+	// ignore ctrl, shift, and alt. (Date: 2014-07-09)
+	int inputsSent = 0;
+	for (INPUT& input : inputs)
+	{
+		inputsSent += SendInput(1, &input, sizeof(INPUT));
+		Sleep(10);
+	}
 	return inputsSent / 2;
 }
 
