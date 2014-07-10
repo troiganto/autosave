@@ -1,3 +1,10 @@
+urgent:
+- replace "caption" with "title"
+- add a table of contents to the FAQ
+- add beta testers
+- change name
+
+not urgent:
 - NIM_SETVERSION does not work in the release build. The reason is unknown so far.
 - m_pLink->SetPath in ConnectedShortcut::connect changes the working directory. Find the reason!
 - A RegistryException once appeared in connected with taskbar-pinned Connected Shortcuts. Not reproducable.
