@@ -37,8 +37,7 @@ protected:
 	void updateTargetFile(const wstring& newFileName);
 
 private:
-	void fillFromExecutable(const wstring& targetPath);
-	void fillFromDocument(const wstring& targetPath);
+	void fillFromFile(const wstring& targetPath);
 	void fillFromShortcut(const wstring& shortcutPath);
 
 	void setIconLocationFromShortcut(const Shortcut& sc);

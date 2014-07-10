@@ -79,38 +79,30 @@ void TemporaryShortcutFile::updateTargetFile(const wstring& targetFilePath)
 		fillFromShortcut(trs.repair(targetFilePath));
 			
 	}
-	else if (OleUtils::isExecutable(targetFilePath))
-	{
-		fillFromExecutable(targetFilePath);
-	}
 	else {
-		fillFromDocument(targetFilePath);
+		fillFromFile(targetFilePath);
 	}
 	m_currentFile = m_saveDirectory + connectFileName(targetFilePath);
 }
 
 
 
-void TemporaryShortcutFile::fillFromExecutable(const wstring& targetPath)
+void TemporaryShortcutFile::fillFromFile(const wstring& targetPath)
 {
 	// Avoid recursion.
-	if (OleUtils::isSelf(targetPath))
+	bool isExecutable = OleUtils::isExecutable(targetPath);
+	if (isExecutable && OleUtils::isSelf(targetPath))
 		throw OleException(E_INVALIDARG);
+
 	m_pLink->SetPath(targetPath.data());
 	m_pLink->SetArguments(L"");
 	m_pLink->SetWorkingDirectory(getParentDir(targetPath).data());
-	m_pLink->SetDescription(OleUtils::getFileDisplayName(targetPath).data());
-	m_pLink->SetIconLocation(targetPath.data(), 0);
-}
 
-
-
-void TemporaryShortcutFile::fillFromDocument(const wstring& targetPath)
-{
-	m_pLink->SetPath(targetPath.data());
-	m_pLink->SetArguments(L"");
-	m_pLink->SetWorkingDirectory(getParentDir(targetPath).data());
+	if (isExecutable)
 	{
+		m_pLink->SetDescription(OleUtils::getFileDisplayName(targetPath).data());
+	}
+	else {
 		TCHAR buffer[MAX_PATH];
 		throwIfZero<OleException>(
 			PathCompactPathEx(buffer, targetPath.data(), 65, 0));
