@@ -41,8 +41,10 @@ namespace AutoSave_tests
 				TemporaryShortcutFile tsf;
 				tsf.setSaveDirectory(dir);
 				tsf.updateFile(sf1);
+				// Make sure the file exists after the call.
 				Assert::IsTrue(PathFileExists(cs1.data()) != FALSE);
 			}
+			// Make sure it doesn't exist anzmore after deleting tsf.
 			Assert::IsFalse(PathFileExists(cs1.data()) != FALSE);
 		}
 
@@ -67,6 +69,20 @@ namespace AutoSave_tests
 				(L"/V 2 \"" + sf2 + L"\"").data(), args.data()) == 0);
 
 			Assert::IsTrue(ConnectedShortcut::isConnected(cs2));
+		}
+
+		TEST_METHOD(TestTSFShortcutProperties)
+		{
+			TemporaryShortcutFile tsf;
+			tsf.setSaveDirectory(dir);
+
+			tsf.updateFile(sf1);
+			Assert::IsTrue(0 == _tcsicmp(
+				tsf.getSelfPath().data(), tsf.getPath().data()));
+			Assert::IsTrue(0 == _tcsicmp(
+				(L"\"" + sf1 + L"\"").data(), tsf.getArguments().data()));
+			Assert::IsTrue(0 == _tcsicmp(
+				dir.data(), tsf.getWorkingDirectory().data()));
 		}
 
 		TEST_METHOD(TestTSFTemporaryRepairedShortcut)

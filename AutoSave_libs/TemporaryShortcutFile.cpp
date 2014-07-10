@@ -32,6 +32,7 @@ TemporaryShortcutFile::~TemporaryShortcutFile()
 void TemporaryShortcutFile::updateFile(const wstring& targetFilePath)
 {
 	deleteFile();
+	wstring wdir;
 	updateTargetFile(targetFilePath);
 	connect(m_configArgs);
 	save(m_currentFile, TRUE);
@@ -71,7 +72,7 @@ void TemporaryShortcutFile::updateTargetFile(const wstring& targetFilePath)
 {
 	if (OleUtils::isShortcutFile(targetFilePath))
 	{
-		// Work around for a bug in IShellLink. See comment on the
+		// Workaround for a bug in IShellLink. See comment on the
 		// TemporaryRepairedShortcut class for more information.
 		// On x64 platforms, trs.repair(a) returns a.
 		TemporaryRepairedShortcut trs;

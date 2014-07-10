@@ -27,15 +27,19 @@ void ConnectedShortcut::connect(const wstring& settingsArgs)
 	wstring args = getArguments();
 	wstring target = CommandLineParser::escapeArgument(getPath());
 	wstring description = SHORT_APP_NAME L" + " + getDescription();
+	wstring workingDirectory = getWorkingDirectory();
 
 	if (!args.empty())
 		target.push_back(L' ');
 	if (!settingsArgs.empty() && settingsArgs.back() != L' ')
 		target.insert(target.begin(), L' ');
 
+	// SetPath seems to change the working directory, too.
+	// We want to keep the original directory, however.
 	m_pLink->SetPath(getSelfPath().data());
 	m_pLink->SetArguments((settingsArgs + target + args).data());
 	m_pLink->SetDescription(description.data());
+	m_pLink->SetWorkingDirectory(workingDirectory.data());
 
 	m_isConnectedCachedResult = true;
 }

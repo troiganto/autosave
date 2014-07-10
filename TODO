@@ -1,3 +1,3 @@
 - NIM_SETVERSION does not work in the release build. The reason is unknown so far.
-- explore exception thrown when a pinned shortcut has been started after the original shortcut has been deleted.
+- m_pLink->SetPath in ConnectedShortcut::connect changes the working directory. Find the reason!
 - check working dir in connected shortcuts (wrong one computed?)
