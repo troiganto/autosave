@@ -223,6 +223,10 @@ void OptionsPageTarget::onApply(bool fromApplyButton)
 		SetWindowLongPtr(m_hwnd, DWLP_MSGRESULT, PSNRET_INVALID);
 	}
 	else {
+		// Best pony.
+		if (m_newMatcher.getPhrase() == L"Sweetie Belle")
+			MessageBox(GetParent(m_hwnd), L"*squeak*", L"Sweetie Belle", 0);
+
 		m_oldMatcher.setFilter(m_newMatcher);
 		SetWindowLongPtr(m_hwnd, DWLP_MSGRESULT, PSNRET_NOERROR);
 	}
@@ -248,17 +252,14 @@ void OptionsPageTarget::updateCurrentWindowCaptionEdit()
 	// Naive approach would fuck with the text selection.
 	static wstring currentText;
 	
+	// Get window title from under the mouse cursor.
 	POINT point;
 	GetCursorPos(&point);
-
 	HWND window = ChildWindowFromPointEx(
 		GetDesktopWindow(), point, CWP_SKIPINVISIBLE);
-	/* Maybe the following is a good addition?
-	if (window == GetParent(m_hwnd))
-		return;
-	*/
-	
 	wstring newText = Matcher::getWindowText(window);
+
+	// Only set text if there is a change.
 	if (newText != currentText)
 	{
 		currentText = newText;
