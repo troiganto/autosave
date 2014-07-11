@@ -5,7 +5,7 @@
 // Constructor
 Configuration::Configuration()
 	: m_settings(),
-	  m_filter(L"SAI", L"\\.psd|gimp|sai|paint", false),
+	  m_filter(L"SAI - ", L"\\.psd| gimp|sai - | - paint", false),
 	  m_ac(),
 	  isEnabled(true),
 	  isFirstSession(false)
