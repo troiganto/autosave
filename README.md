@@ -1,4 +1,4 @@
-Broken AutoSave
+Broken Pen's AutoSave
 ========
 
 A Visual C++ application for Windows that regularly simulates pressing ```Ctrl+S``` for other applications.
@@ -9,7 +9,7 @@ What follows here is a lengthy and technical description of what AutoSave does a
 If you are a regular user, the [FAQ](./FAQ.md) might be more to your taste.
 
 
-## Using Broken AutoSave
+## Using AutoSave
 
 ### General Workflow
 
@@ -61,7 +61,7 @@ This allows AutoSave to be started as soon as the Windows session has started.
 ### Uninstall
 
 AutoSave does the following changes on the user's machine:
-1. It saves its configuration in the user's registry (the location is ```HKEY_CURRENT_USER\Software\Broken AutoSave```);
+1. It saves its configuration in the user's registry (the location is ```HKEY_CURRENT_USER\Software\Broken Pen's AutoSave```);
 2. It may create a shortcut in the start-up directory if the user asks it to;
 3. The user may create Connected Shortcuts with it.
 
@@ -74,9 +74,9 @@ Each of these three steps may be performed separately.
 Concerning the Connected Shortcuts, AutoSave lets the user choose whether they should be deleted or converted into normal shortcuts.
 The latter would convert a shortcut that executes the line ```C:\path\to\autosave.exe C:\path\to\another\program.exe``` into a shortcut that executes ```C:\path\to\another\program.exe```.
 
-## Building Broken AutoSave
+## Building AutoSave
 
-Broken AutoSave is a native C++ project written with Visual Studio Express 2013.
+AutoSave is a native C++ project written with Visual Studio Express 2013.
 The necessary project files are included in the repository, so it shouldn't be difficult to compile the codebase.
 
 The repository contains the following sub-folders:
