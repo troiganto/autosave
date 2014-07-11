@@ -201,7 +201,7 @@ you should delete them if you want to remove AutoSave from your system.
 
 To do that, go to the **Remove & Uninstall** page of AutoSave's
 settings window and click the proper button.
-Follow the wizard and, once, its completed, delete your copy of ``AutoSave.exe``.
+Follow the wizard and, when it's completed, delete your copy of ``AutoSave.exe``.
 
 #### AutoSave doesn't find all Connected Shortcuts.
 
