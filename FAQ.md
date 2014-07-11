@@ -41,7 +41,7 @@ If you want AutoSave to always start when you log in to Windows, you can
 create an auto-start entry on the **More options** page of the settings window.
 
 If you want AutoSave to always start when you open a specific application,
-you can create a Connected Shortcut.
+you can create a [Connected Shortcut](#connected-shortcuts).
 
 
 #### Does AutoSave also work on Linux or Mac?
@@ -137,7 +137,7 @@ and the [rest of the Internet](https://duckduckgo.com/?q=regular+expressions+tut
 contain many tutorials surrounding regular expressions, but what most people
 would need when using AutoSave is:
 
-* ``gimp|sai - |paint`` matches a window if its title contains ``gimp``, ``sai - `` or ``paint``;
+* ``gimp|sai -|paint`` matches a window if its title contains ``gimp``, ``sai -`` or ``paint``;
 * ``you (are|were)`` matches both ``you are`` and ``you were``;
 * ``[0-9]`` matches any digit;
 * ``[0-9]{1,3}`` matches any number that contains 1, 2, or 3 digits.
