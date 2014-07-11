@@ -1,8 +1,6 @@
 urgent:
-- replace "caption" with "title"
 - add a table of contents to the FAQ
 - add beta testers
-- change name
 
 not urgent:
 - NIM_SETVERSION does not work in the release build. The reason is unknown so far.

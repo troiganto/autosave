@@ -33,20 +33,23 @@ IDC_MENU MENUEX
 // Dialog resources
 //
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-IDD_ABOUT DIALOG 0, 0, 246, 136
+IDD_ABOUT DIALOG 0, 0, 246, 221
 STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_POPUP | WS_SYSMENU
-CAPTION "About Broken AutoSave"
+CAPTION "About Broken Pen's AutoSave"
 FONT 8, "Ms Shell Dlg"
 {
+    LTEXT           "Special thanks go to my brilliant beta testers. Everyone of them has made irreplaceable contributions and this project would have never been finished without them.", 106, 7, 146, 232, 24, SS_LEFT, WS_EX_LEFT
+    LTEXT           "In no particular order, I want to thank: Alex, Autumn Bramble, Chaotic Conundrums, Post-Cactus, and Tempus Fidgets for their thoughts, their patience, and their time.", 107, 7, 177, 239, 24, SS_LEFT, WS_EX_LEFT
+    DEFPUSHBUTTON   "Close", 1, 189, 200, 50, 14, 0, WS_EX_LEFT
     ICON            IDI_A, IDC_ABOUT_ICON, 7, 7, 11, 10, SS_ICON, WS_EX_LEFT
     LTEXT           "Version", IDC_ABOUT_VERSION, 50, 7, 189, 8, SS_LEFT, WS_EX_LEFT
     LTEXT           "Compilation day", IDC_ABOUT_DATE, 50, 19, 189, 8, SS_LEFT, WS_EX_LEFT
-    CONTROL         "Broken AutoSave has been written by tumblr user <a href=""http://broken-pen.tumblr.com/"">Broken Pen</a>.", 100, "SysLink", 0x50030000, 7, 44, 232, 8, 0x00000000
-    CONTROL         "Broken AutoSave is on <a href=""https://github.com/troiganto/autosave"">github</a>, too.", 101, "SysLink", 0x50030000, 7, 56, 232, 8, 0x00000000
-    CONTROL         "For a collection of questions, notices, and updates for Broken AutoSave, you can read the proper <a href=""http://broken-pen.tumblr.com/tagged/Broken-AutoSave"">tag page</a>.", 102, "SysLink", 0x50030000, 7, 68, 232, 16, 0x00000000
-    CONTROL         "I also gladly receive <a href=""mailto:grillitp@gmail.com?subject=Broken%20AutoSave"">e-mails</a> about Broken AutoSave.", 103, "SysLink", 0x50030000, 7, 88, 232, 8, 0x00000000
-    LTEXT           "If all of the above links are dead, you are on your own. Sorry!", 104, 7, 100, 232, 8, SS_LEFT, WS_EX_LEFT
-    PUSHBUTTON      "Close", 1, 189, 115, 50, 14, 0, WS_EX_LEFT
+    CONTROL         "AutoSave has been written by tumblr user <a href=""http://broken-pen.tumblr.com/"">Broken Pen</a>. It has been published under the <a href=""https://gnu.org/licenses/gpl-3.0-standalone.html"">GNU General Public License</a>.", 100, "SysLink", 0x50030000, 7, 44, 232, 16, 0x00000000
+    CONTROL         "You can find AutoSave's source code and more information on the AutoSave <a href=""https://github.com/troiganto/autosave"">github page</a>.", 101, "SysLink", 0x50030000, 7, 64, 232, 16, 0x00000000
+    CONTROL         "For a collection of questions, notices, and updates for AutoSave, you can read the proper <a href=""http://broken-pen.tumblr.com/tagged/Broken-AutoSave"">tag page</a> on my blog.", 102, "SysLink", 0x50030000, 7, 84, 232, 16, 0x00000000
+    CONTROL         "I also gladly receive <a href=""mailto:grillitp@gmail.com?subject=Broken%20AutoSave"">e-mails</a> about AutoSave.", 103, "SysLink", 0x50030000, 7, 104, 232, 8, 0x00000000
+    LTEXT           "In the unlikely case that all of the above links are dead, you are on your own. Sorry!", 104, 7, 116, 239, 16, SS_LEFT, WS_EX_LEFT
+    CONTROL         "", 105, WC_STATIC, SS_ETCHEDHORZ, 7, 139, 232, 1, WS_EX_LEFT
 }
 
 
@@ -85,12 +88,12 @@ EXSTYLE WS_EX_CONTROLPARENT
 CAPTION "Target windows"
 FONT 8, "Ms Shell Dlg"
 {
-    LTEXT           "A part of the target window's caption:", 0, 7, 7, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
+    LTEXT           "A part of the target window's title:", 0, 7, 7, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
     EDITTEXT        IDC_SETTINGS_FILTEREDIT, 7, 17, 201, 14, ES_AUTOHSCROLL, WS_EX_LEFT
     AUTOCHECKBOX    "This is a regular expression (advanced)", IDC_SETTINGS_ISREGEXCHECK, 7, 35, 201, 8, 0, WS_EX_LEFT
     LTEXT           "Currently open windows that would match:", 3, 7, 52, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
     LISTBOX         IDC_SETTINGS_WINDOWLIST, 7, 62, 201, 127, LBS_NOINTEGRALHEIGHT | LBS_HASSTRINGS | LBS_NOSEL | LBS_SORT | LBS_USETABSTOPS | LBS_NOTIFY, WS_EX_LEFT
-    LTEXT           "Caption of the window under the mouse cursor:", 5, 7, 196, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
+    LTEXT           "Title of the window under the mouse cursor:", 5, 7, 196, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
     EDITTEXT        IDC_SETTINGS_CURWINEDIT, 7, 206, 201, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
 }
 
@@ -142,7 +145,7 @@ FONT 8, "Ms Shell Dlg"
     CONTROL         "", IDC_SHORTCUTS_INTERVALUPDOWN, UPDOWN_CLASS, WS_DISABLED | UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_NOTHOUSANDS | UDS_AUTOBUDDY | UDS_SETBUDDYINT, 193, 140, 11, 16, WS_EX_LEFT
     AUTOCHECKBOX    "Custom level of verbosity:", IDC_SHORTCUTS_VERBOSITYCHECK, 7, 161, 96, 8, WS_DISABLED, WS_EX_LEFT
     COMBOBOX        IDC_SHORTCUTS_VERBOSITYLIST, 7, 173, 198, 76, WS_TABSTOP | WS_DISABLED | CBS_DROPDOWNLIST | CBS_HASSTRINGS, WS_EX_LEFT
-    AUTOCHECKBOX    "The Close button shuts down AutoSave", IDC_SHORTCUTS_SHUTDOWNCHECK, 7, 199, 142, 8, 0, WS_EX_LEFT
+    AUTOCHECKBOX    "Closing this dialog shuts down AutoSave", IDC_SHORTCUTS_SHUTDOWNCHECK, 7, 199, 143, 8, 0, WS_EX_LEFT
     PUSHBUTTON      "Close", 2, 155, 196, 50, 14, 0, WS_EX_LEFT
 }
 
@@ -235,14 +238,14 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 STRINGTABLE
 {
     IDC_AUTOSAVE                  "AUTOSAVE"
-    IDS_APP_TITLE                 "Broken AutoSave"
+    IDS_APP_TITLE                 "Broken Pen's AutoSave"
     IDS_STARTED_CAPTION           "AutoSave has been started."
     IDS_STARTED_TEXT              "You can safely return to your work now."
     IDS_DISABLED_CAPTION          "AutoSave has been disabled due to invalid settings."
     IDS_DISABLED_TEXT             "Please click this balloon to open the settings window and solve this problem."
     IDS_ALERT_CAPTION             "Auto-save in five seconds!"
     IDS_ALERT_TEXT                "Click this balloon to turn off notifications."
-    IDS_ERROR_NOTARGET            "AutoSave needs a way to know which windows it should send keyboard input to. Please enter a part of the target window's caption in the form."
+    IDS_ERROR_NOTARGET            "AutoSave needs a way to know which windows it should send keyboard input to. Please enter a part of the target window's title into the given text box."
     IDS_ERROR_BADREGEX            "There are errors in the given regular expression.\nPlease check your expression on any typos, or turn off regular expressions altogether."
     IDS_ERROR_NOHOTKEY            "Please enter a valid keyboard input to be sent to other applications."
     IDS_AUTOSTARTWARNING          "This creates a shortcut to AutoSave in the Autostart folder of your start menu.\nAutoSave will be started whenever you log in to Windows. This only affects you as the current user.\nYou can undo this on the Uninstall tab or by simply deleting the shortcut file.\n\nClick OK if you want to continue."
@@ -255,7 +258,7 @@ STRINGTABLE
     IDS_SLV_SOURCEERROR           "An error occured while trying to read the dropped file."
     IDS_SLV_RESULTERROR           "An error occured while creating the Connected Shortcut."
     IDS_SLV_WAIT                  "Please wait a second ..."
-    IDS_TARGET_EMPTY              "Please enter a window filter in the form above."
+    IDS_TARGET_EMPTY              "Please enter a phrase in the text box above."
     IDS_TARGET_BADREGEX           "The regular expression contains errors."
     IDS_TARGET_NOWINDOWS          "No matching windows currently open."
     IDS_ERROR_NODROPPEDSHORTCUTS  "Couldn't find any Connected Shortcuts among the dropped files"

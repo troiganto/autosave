@@ -8,11 +8,11 @@
 #include "targetver.h"
 
 // Program name and version
-#define APP_NAME L"Broken AutoSave"
+#define APP_NAME L"Broken Pen's AutoSave"
 #define DEFAULT_REGISTRY_KEY APP_NAME
 #define CONNECTED_SHORTCUTS_REGISTRY_VALUE_NAME L"connectedShortcutsList"
 #define SHORT_APP_NAME L"AutoSave"
-#define APP_VERSION2 L"0.9.4"
+#define APP_VERSION2 L"0.9.5"
 #ifdef _WIN64
 #define APP_VERSION APP_VERSION2
 #else
