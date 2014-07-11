@@ -57,6 +57,7 @@
 #define IDM_DISABLE                             40003
 #define IDS_STARTED_TEXT                        40003
 #define IDC_SETTINGS_CONNCUTBUTTON              40004
+#define IDC_SETTINGS_REGEXHELP                  40004
 #define IDC_SHORTCUTS_HOTKEYCHECK               40004
 #define IDM_CLOSE                               40004
 #define IDS_DISABLED_CAPTION                    40004

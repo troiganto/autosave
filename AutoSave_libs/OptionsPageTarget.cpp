@@ -79,22 +79,28 @@ INT_PTR OptionsPageTarget::handleCommand(UINT code, UINT ctrlId, HWND ctrlHandle
 
 
 
-INT_PTR OptionsPageTarget::handleNotify(const LPNMHDR header)
+INT_PTR OptionsPageTarget::handleNotify(const LPNMHDR pHeader)
 {
-	if (header->code == PSN_SETACTIVE)
+	if (pHeader->code == PSN_SETACTIVE)
 	{
 		onSetActive();
 		return TRUE;
 	}
-	else if (header->code == PSN_KILLACTIVE)
+	else if (pHeader->code == PSN_KILLACTIVE)
 	{
 		onKillActive();
 		return TRUE;
 	}
-	else if (header->code == PSN_APPLY)
+	else if (pHeader->code == PSN_APPLY)
 	{
-		bool fromApplyButton = !((LPPSHNOTIFY)header)->lParam;
+		bool fromApplyButton = !((LPPSHNOTIFY)pHeader)->lParam;
 		onApply(fromApplyButton);
+		return TRUE;
+	}
+	else if (pHeader->idFrom == IDC_SETTINGS_REGEXHELP &&
+		(pHeader->code == NM_CLICK || pHeader->code == NM_RETURN))
+	{
+		onLinkClicked(((const PNMLINK) pHeader)->item.szUrl);
 		return TRUE;
 	}
 	else {
@@ -168,6 +174,13 @@ void OptionsPageTarget::onEditChange(UINT ctrlId, HWND ctrlHandle)
 	else {
 		m_newMatcher.setPhrase(filter);
 	}
+}
+
+
+
+void OptionsPageTarget::onLinkClicked(LPCWSTR linkUrl)
+{
+	ShellExecute(NULL, L"open", linkUrl, NULL, NULL, SW_SHOW);
 }
 
 

@@ -33,23 +33,22 @@ IDC_MENU MENUEX
 // Dialog resources
 //
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-IDD_ABOUT DIALOG 0, 0, 246, 221
+IDD_ABOUT DIALOG 0, 0, 246, 190
 STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPTION | WS_VISIBLE | WS_POPUP | WS_SYSMENU
 CAPTION "About Broken Pen's AutoSave"
 FONT 8, "Ms Shell Dlg"
 {
-    LTEXT           "Special thanks go to my brilliant beta testers. Everyone of them has made irreplaceable contributions and this project would have never been finished without them.", 106, 7, 146, 232, 24, SS_LEFT, WS_EX_LEFT
-    LTEXT           "In no particular order, I want to thank: Alex, Autumn Bramble, Chaotic Conundrums, Post-Cactus, and Tempus Fidgets for their thoughts, their patience, and their time.", 107, 7, 177, 239, 24, SS_LEFT, WS_EX_LEFT
-    DEFPUSHBUTTON   "Close", 1, 189, 200, 50, 14, 0, WS_EX_LEFT
+    LTEXT           "Special thanks go to my brilliant beta testers. Everyone of them has made irreplaceable contributions and this project would have never been finished without them.", 106, 7, 110, 232, 24, SS_LEFT, WS_EX_LEFT
+    LTEXT           "In no particular order, I want to thank: Autumn Bramble, Chaotic Conundrums, Post-Cactus, ReplayTheMaster, and Tempus Fidgets for their thoughts, their patience, and their time.", 107, 7, 138, 232, 24, SS_LEFT | SS_NOPREFIX, WS_EX_LEFT
+    DEFPUSHBUTTON   "Close", 1, 189, 169, 50, 14, 0, WS_EX_LEFT
     ICON            IDI_A, IDC_ABOUT_ICON, 7, 7, 11, 10, SS_ICON, WS_EX_LEFT
     LTEXT           "Version", IDC_ABOUT_VERSION, 50, 7, 189, 8, SS_LEFT, WS_EX_LEFT
     LTEXT           "Compilation day", IDC_ABOUT_DATE, 50, 19, 189, 8, SS_LEFT, WS_EX_LEFT
     CONTROL         "AutoSave has been written by tumblr user <a href=""http://broken-pen.tumblr.com/"">Broken Pen</a>. It has been published under the <a href=""https://gnu.org/licenses/gpl-3.0-standalone.html"">GNU General Public License</a>.", 100, "SysLink", 0x50030000, 7, 44, 232, 16, 0x00000000
-    CONTROL         "You can find AutoSave's source code and more information on the AutoSave <a href=""https://github.com/troiganto/autosave"">github page</a>.", 101, "SysLink", 0x50030000, 7, 64, 232, 16, 0x00000000
-    CONTROL         "For a collection of questions, notices, and updates for AutoSave, you can read the proper <a href=""http://broken-pen.tumblr.com/tagged/Broken-AutoSave"">tag page</a> on my blog.", 102, "SysLink", 0x50030000, 7, 84, 232, 16, 0x00000000
-    CONTROL         "I also gladly receive <a href=""mailto:grillitp@gmail.com?subject=Broken%20AutoSave"">e-mails</a> about AutoSave.", 103, "SysLink", 0x50030000, 7, 104, 232, 8, 0x00000000
-    LTEXT           "In the unlikely case that all of the above links are dead, you are on your own. Sorry!", 104, 7, 116, 239, 16, SS_LEFT, WS_EX_LEFT
-    CONTROL         "", 105, WC_STATIC, SS_ETCHEDHORZ, 7, 139, 232, 1, WS_EX_LEFT
+    CONTROL         "AutoSave is on <a href=""https://github.com/troiganto/autosave"">github</a>.", 101, "SysLink", 0x50030000, 7, 64, 232, 8, 0x00000000
+    CONTROL         "Updates and more about AutoSave are posted on <a href=""http://broken-pen.tumblr.com/tagged/AutoSave"">my blog</a>.", 102, "SysLink", 0x50030000, 7, 76, 232, 8, 0x00000000
+    CONTROL         "For feedback, you may also send me an <a href=""mailto:grillitp@gmail.com?subject=AutoSave"">e-mail</a>.", 103, "SysLink", 0x50030000, 7, 88, 232, 8, 0x00000000
+    CONTROL         "", 105, WC_STATIC, SS_ETCHEDHORZ, 7, 103, 232, 1, WS_EX_LEFT
 }
 
 
@@ -88,12 +87,13 @@ EXSTYLE WS_EX_CONTROLPARENT
 CAPTION "Target windows"
 FONT 8, "Ms Shell Dlg"
 {
-    LTEXT           "A part of the target window's title:", 0, 7, 7, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
+    LTEXT           "A part of the target window's title:", 100, 7, 7, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
     EDITTEXT        IDC_SETTINGS_FILTEREDIT, 7, 17, 201, 14, ES_AUTOHSCROLL, WS_EX_LEFT
     AUTOCHECKBOX    "This is a regular expression (advanced)", IDC_SETTINGS_ISREGEXCHECK, 7, 35, 201, 8, 0, WS_EX_LEFT
-    LTEXT           "Currently open windows that would match:", 3, 7, 52, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
-    LISTBOX         IDC_SETTINGS_WINDOWLIST, 7, 62, 201, 127, LBS_NOINTEGRALHEIGHT | LBS_HASSTRINGS | LBS_NOSEL | LBS_SORT | LBS_USETABSTOPS | LBS_NOTIFY, WS_EX_LEFT
-    LTEXT           "Title of the window under the mouse cursor:", 5, 7, 196, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
+    CONTROL         "<a href=""https://github.com/troiganto/autosave/blob/master/FAQ.md#what-does-this-is-a-regular-expression-mean"">What does that mean?</a>", IDC_SETTINGS_REGEXHELP, "SysLink", 0x50030000, 19, 45, 189, 8, 0x00000000
+    LTEXT           "Currently open windows that would match:", 101, 7, 60, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
+    LISTBOX         IDC_SETTINGS_WINDOWLIST, 7, 70, 201, 119, LBS_NOINTEGRALHEIGHT | LBS_HASSTRINGS | LBS_NOSEL | LBS_SORT | LBS_USETABSTOPS | LBS_NOTIFY, WS_EX_LEFT
+    LTEXT           "Title of the window under the mouse cursor:", 102, 7, 196, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
     EDITTEXT        IDC_SETTINGS_CURWINEDIT, 7, 206, 201, 14, NOT WS_BORDER | ES_AUTOHSCROLL | ES_READONLY, WS_EX_LEFT
 }
 
@@ -106,20 +106,20 @@ EXSTYLE WS_EX_CONTROLPARENT
 CAPTION "Remove && Uninstall"
 FONT 8, "Ms Shell Dlg"
 {
-    LTEXT           "AutoSave can perform several changes on your computer. The form below lets you undo some or all of these changes.\nThis way, you can reset AutoSave back to its original state or just remove it completely from your computer.", 0, 7, 7, 201, 32, SS_LEFT, WS_EX_LEFT
-    PUSHBUTTON      "&Do everything listed below", IDC_UNINSTALL_ALL, 103, 46, 105, 14, 0, WS_EX_LEFT
+    LTEXT           "AutoSave may perform several changes on your computer. The form below lets you undo some or all of these changes.\nThis way, you can reset AutoSave back to its original state or just remove it completely from your computer.", 0, 7, 7, 201, 32, SS_LEFT, WS_EX_LEFT
+    DEFPUSHBUTTON   "&Do everything listed below", IDC_UNINSTALL_ALL, 109, 46, 100, 14, 0, WS_EX_LEFT
     CONTROL         "", 2, WC_STATIC, SS_ETCHEDHORZ, 7, 67, 201, 1, WS_EX_LEFT
     LTEXT           "Remove auto-start entry", 3, 7, 63, 76, 8, NOT WS_GROUP | SS_LEFT, WS_EX_LEFT
     LTEXT           "If AutoSave starts automatically on Windows startup, you can choose this option to disable this behavior.", 4, 7, 75, 201, 16, SS_LEFT, WS_EX_LEFT
-    PUSHBUTTON      "Remove &auto-start entry", IDC_UNINSTALL_AUTOSTART, 103, 98, 105, 14, 0, WS_EX_LEFT
+    PUSHBUTTON      "Remove &auto-start entry", IDC_UNINSTALL_AUTOSTART, 109, 98, 100, 14, 0, WS_EX_LEFT
     CONTROL         "", 6, WC_STATIC, SS_ETCHEDHORZ, 7, 119, 201, 1, WS_EX_LEFT
-    LTEXT           "Remove Connected Shortcuts", 7, 7, 115, 96, 8, SS_LEFT, WS_EX_LEFT
+    LTEXT           "Revert Connected Shortcuts", 7, 7, 115, 91, 8, SS_LEFT, WS_EX_LEFT
     LTEXT           "Choose this option to either delete all Connected Shortcuts you have created or to convert them into normal shortcuts.", 8, 7, 127, 201, 16, SS_LEFT, WS_EX_LEFT
-    PUSHBUTTON      "Remove &Connected Shortcuts", IDC_UNINSTALL_CONNCUT, 103, 151, 106, 14, 0, WS_EX_LEFT
+    PUSHBUTTON      "Revert &Connected Shortcuts", IDC_UNINSTALL_CONNCUT, 109, 151, 100, 14, 0, WS_EX_LEFT
     CONTROL         "", 10, WC_STATIC, SS_ETCHEDHORZ, 7, 172, 201, 1, WS_EX_LEFT
     LTEXT           "Delete saved options", 11, 7, 168, 68, 8, SS_LEFT, WS_EX_LEFT
-    LTEXT           "Click Delete Saved Options to remove everything AutoSave has saved to your registry.", 12, 7, 180, 201, 16, SS_LEFT, WS_EX_LEFT
-    PUSHBUTTON      "Delete saved &options", IDC_UNINSTALL_REGISTRY, 103, 195, 105, 14, 0, WS_EX_LEFT
+    LTEXT           "Choose this option to remove the settings AutoSave has saved on your computer.", 12, 7, 180, 201, 16, SS_LEFT, WS_EX_LEFT
+    PUSHBUTTON      "Delete saved &options", IDC_UNINSTALL_REGISTRY, 109, 195, 100, 14, 0, WS_EX_LEFT
 }
 
 
@@ -219,14 +219,14 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 IDD_UNINSTALL_SHORTCUTS DIALOG 0, 0, 212, 188
 STYLE DS_CENTER | DS_CONTROL | DS_SHELLFONT | WS_CAPTION | WS_CHILDWINDOW | WS_CLIPCHILDREN | WS_SYSMENU
 EXSTYLE WS_EX_CONTROLPARENT
-CAPTION "Remove Connected Shortcuts"
+CAPTION "Revert Connected Shortcuts"
 FONT 8, "Ms Shell Dlg"
 {
     LTEXT           "This will remove all Connected Shortcuts AutoSave has created on your computer.", 100, 7, 7, 198, 16, SS_LEFT, WS_EX_LEFT
-    AUTORADIOBUTTON "Convert Connected Shortcuts\nChoose this to try and turn the connected shortcuts back into normal ones.", IDC_UNINSTALL_CONVERT, 7, 30, 198, 24, WS_TABSTOP | BS_TOP | BS_MULTILINE, WS_EX_LEFT
-    AUTORADIOBUTTON "Delete Connected Shortcuts\nChoose this to just delete all shortcuts listed below.", IDC_UNINSTALL_DELETE, 7, 61, 198, 16, WS_TABSTOP | BS_TOP | BS_MULTILINE, WS_EX_LEFT
-    LTEXT           "Found the following Connected Shortcuts:", 101, 7, 84, 198, 8, SS_LEFT, WS_EX_LEFT
-    LISTBOX         IDC_UNINSTALL_FILELIST, 7, 94, 198, 87, WS_TABSTOP | WS_HSCROLL | WS_VSCROLL | NOT LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_SORT, WS_EX_LEFT
+    AUTORADIOBUTTON "Convert Connected Shortcuts\nChoose this to turn all Connected Shortcuts back into normal shortcuts.", IDC_UNINSTALL_CONVERT, 7, 30, 198, 24, WS_TABSTOP | BS_TOP | BS_MULTILINE, WS_EX_LEFT
+    AUTORADIOBUTTON "Delete Connected Shortcuts\nChoose this to just delete all Connected Shortcuts listed below.", IDC_UNINSTALL_DELETE, 7, 61, 198, 24, WS_TABSTOP | BS_TOP | BS_MULTILINE, WS_EX_LEFT
+    LTEXT           "Found the following Connected Shortcuts:", 101, 7, 92, 198, 8, SS_LEFT, WS_EX_LEFT
+    LISTBOX         IDC_UNINSTALL_FILELIST, 7, 102, 198, 79, WS_TABSTOP | WS_HSCROLL | WS_VSCROLL | NOT LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_SORT, WS_EX_LEFT
 }
 
 

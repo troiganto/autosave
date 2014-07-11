@@ -29,6 +29,7 @@ protected:
 
 	void onButtonClick(UINT ctrlId, HWND ctrlHandle);
 	void onEditChange(UINT ctrlId, HWND ctrlHandle);
+	void onLinkClicked(LPCWSTR linkUrl);
 
 	void onSetActive();
 	void onKillActive();
