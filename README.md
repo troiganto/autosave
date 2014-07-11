@@ -5,6 +5,10 @@ A Visual C++ application for Windows that regularly simulates pressing ```Ctrl+S
 
 Through this approach, you can add an auto-save feature to virtually every application, as long as it has a normal application window.
 
+What follows here is a lengthy and technical description of what AutoSave does and what means it uses for that.
+If you are a regular user, the [FAQ](./FAQ.md) might be more to your taste.
+
+
 ## Using Broken AutoSave
 
 ### General Workflow

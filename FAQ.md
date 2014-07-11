@@ -2,9 +2,27 @@
 
 This file might be edited to add at later points.
 
+##### Table of Contents
+
+* [General Usage](#general-usage)
+  * [Does AutoSave also work on Linux or Mac?](#does-autosave-also-work-on-linux-or-mac)
+* [Window Matching](#window-matching)
+  * [I want to use AutoSave with &lt;Art Program&gt;, but the window doesn't have a title bar.](#i-want-to-use-autosave-with-art-program-but-the-window-doesnt-have-a-title-bar)
+  * [AutoSave doesn't work with &lt;Adobe Product&gt;.](#autosave-doesnt-work-with-adobe-product)
+  * [I want to use AutoSave with two different art programs, how do?](#i-want-to-use-autosave-with-two-different-art-programs-how-do)
+  * [What does "This is a regular expression" mean?](#what-does-this-is-a-regular-expression-mean)
+* [Connected Shortcuts](#connected-shortcuts)
+  * [When I open a Connected Shortcut, does AutoSave still match windows by caption?](#when-i-open-a-connected-shortcut-does-autosave-still-match-windows-by-caption)
+  * [How do the settings in the "Create a Connected Shortcut" window work?](#how-do-the-settings-in-the-create-a-connected-shortcut-window-work)
+  * [How can I create a Connected Shortcut without Drag & Drop?](#how-can-i-create-a-connected-shortcut-without-drag--drop)
+  * [Can I pin a Connected Shortcut to the taskbar?](#can-i-pin-a-connected-shortcut-to-the-taskbar)
+* [Uninstalling](#uninstalling)
+  * [AutoSave doesn't find all Connected Shortcuts.](#autosave-doesnt-find-all-connected-shortcuts)
+  * [I only want to revert some of the Connected Shortcuts.](#i-only-want-to-revert-some-of-the-connected-shortcuts)
+  * [I have several copies of AutoSave on my computer. How does uninstalling work?](#i-have-several-copies-of-autosave-on-my-computer-how-does-uninstalling-work)
 
 
-## General Use
+## General Usage
 
 When you start AutoSave for the first time, it will automatically open its
 settings window. There, you can specify which programs to interact with and
@@ -23,12 +41,15 @@ If you want AutoSave to always start when you log in to Windows, you can
 create an auto-start entry on the **More options** page of the settings window.
 
 If you want AutoSave to always start when you open a specific application,
-you can create a Connected Shortcut.
+you can create a [Connected Shortcut](#connected-shortcuts).
 
 
 #### Does AutoSave also work on Linux or Mac?
 
-This has not been tested yet.
+No. Unfortunately, AutoSave is a Windows-based application.
+
+Using Wine, AutoSave crashed more often than not, so that won't help either.
+(last checked: July 2014)
 
 
 
@@ -46,7 +67,7 @@ This *phrase* by which AutoSave filters windows is what you enter on the
 **Target windows** page of the settings window.
 
 
-#### I want to use AutoSave with <Art Program>, but the window doesn't have a title bar.
+#### I want to use AutoSave with &lt;Art Program&gt;, but the window doesn't have a title bar.
 
 The windows of some modern applications merge don't have a title bar like
 most other applications. They might merge it with a menu bar, a tab bar,
@@ -59,7 +80,7 @@ even if the window doesn't have a visible title bar.
 
 
 
-#### AutoSave doesn't work with <Adobe Product>.
+#### AutoSave doesn't work with &lt;Adobe Product&gt;!
 
 Various apps from the Adobe Creative suite have caused some confusion during
 the beta test of AutoSave.
@@ -116,9 +137,10 @@ and the [rest of the Internet](https://duckduckgo.com/?q=regular+expressions+tut
 contain many tutorials surrounding regular expressions, but what most people
 would need when using AutoSave is:
 
+* ``gimp|sai -|paint`` matches a window if its title contains ``gimp``, ``sai -`` or ``paint``;
 * ``you (are|were)`` matches both ``you are`` and ``you were``;
 * ``[0-9]`` matches any digit;
-* ``[0-9]{1,3}`` contains any number that contains 1, 2, or 3 digits.
+* ``[0-9]{1,3}`` matches any number that contains 1, 2, or 3 digits.
 
 
 
