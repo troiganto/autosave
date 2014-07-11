@@ -89,7 +89,7 @@ FONT 8, "Ms Shell Dlg"
 {
     LTEXT           "A part of the target window's title:", 100, 7, 7, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
     EDITTEXT        IDC_SETTINGS_FILTEREDIT, 7, 17, 201, 14, ES_AUTOHSCROLL, WS_EX_LEFT
-    AUTOCHECKBOX    "This is a regular expression (advanced)", IDC_SETTINGS_ISREGEXCHECK, 7, 35, 201, 8, 0, WS_EX_LEFT
+    AUTOCHECKBOX    "This is a regular expression", IDC_SETTINGS_ISREGEXCHECK, 7, 35, 201, 8, 0, WS_EX_LEFT
     CONTROL         "<a href=""https://github.com/troiganto/autosave/blob/master/FAQ.md#what-does-this-is-a-regular-expression-mean"">What does that mean?</a>", IDC_SETTINGS_REGEXHELP, "SysLink", 0x50030000, 19, 45, 189, 8, 0x00000000
     LTEXT           "Currently open windows that would match:", 101, 7, 60, 201, 8, SS_LEFT, WS_EX_TRANSPARENT
     LISTBOX         IDC_SETTINGS_WINDOWLIST, 7, 70, 201, 119, LBS_NOINTEGRALHEIGHT | LBS_HASSTRINGS | LBS_NOSEL | LBS_SORT | LBS_USETABSTOPS | LBS_NOTIFY, WS_EX_LEFT
