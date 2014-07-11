@@ -136,9 +136,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="AppConnection.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="AutostartShortcut.h" />
