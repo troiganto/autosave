@@ -8,7 +8,7 @@ default_env = Environment(
     )
 
 release_env = default_env.Clone()
-release_env.Append(CXXFLAGS=["-O2"])
+release_env.Append(CXXFLAGS=["-O2", "-flto"])
 
 debug_env = default_env.Clone()
 debug_env.Append(CXXFLAGS=["-g"])
