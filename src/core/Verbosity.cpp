@@ -1,5 +1,5 @@
 /*
- * autosave.cpp
+ * Verbosity.cpp
  *
  * Copyright 2015 Nico <nico@FARD>
  *
@@ -21,26 +21,34 @@
  *
  */
 
-#include <autosave.hpp>
-#include <core/Settings.hpp>
+#include <core/Verbosity.hpp>
 
-#include <iostream>
+#include <algorithm>
+#include <stdexcept>
 
-
-int main()
+namespace core { namespace Verbosity
 {
-    using namespace std;
 
-    core::Settings settings;
-    settings.set_verbosity(99);
-
-    core::Settings::Mask mask;
-    mask.set(core::Settings::Bits::VERBOSITY);
-
-    core::Settings another(settings, ~mask);
-
-    cout << "Hello world!" << endl;
-    cout << (settings == another) << endl;
-
-    return 0;
+Verbosity to_enum_strict(unsigned int i)
+{
+    // Don't compare to Verbosity::MINIMUM because no unsigned int
+    // can be less than 0.
+    if (i > static_cast<unsigned int>(Verbosity::MAXIMUM)) {
+        throw std::out_of_range("Out-of-range value for core::Verbosity");
+    }
+    else {
+        return static_cast<Verbosity>(i);
+    }
 }
+
+Verbosity to_enum(unsigned int i)
+{
+    // Don't compare to Verbosity::MINIMUM because no unsigned int
+    // can be less than 0.
+    return static_cast<Verbosity>(
+        std::min(i, static_cast<unsigned int>(Verbosity::MAXIMUM))
+        );
+}
+
+}}
+
