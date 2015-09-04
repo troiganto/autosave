@@ -1,11 +1,29 @@
-
-# Declare build environments.
+# Declare default build environment.
 
 VariantDir("build", "src", duplicate=0)
 default_env = Environment(
     CPPPATH = "./include",
     CXXFLAGS = ["-std=c++11", "-pthread", "-Wall", "-Wextra"],
     )
+
+if not default_env.GetOption('clean'):
+    conf = Configure(default_env)
+    # Check first if libxdo is available at all.
+    if not conf.CheckLib("xdo", autoadd=False):
+        print "Did not find libxdo.a or xdo.lib, exiting"
+        Exit(1)
+    # After that, do a more granular check for a specific function.
+    # This is necessary because libxdo changed its API at some point.
+    # And we want to get the right version.
+    if not conf.CheckLibWithHeader(libs=["xdo"], header="xdo.h",
+                                   call="xdo_get_active_window(0, 0);",
+                                   language="C"):
+        print "Did not find function xdo_get_active_window, exiting"
+        print "(Make sure you have the latest version of libxdo)"
+        Exit(1)
+    default_env = conf.Finish()
+
+# Declare diverging release and debug environments.
 
 release_env = default_env.Clone()
 release_env.Append(CXXFLAGS=["-O2", "-flto"])
@@ -29,5 +47,6 @@ main_env.Program(
     target = "autosave",
     source =
         Glob("build/autosave.cpp") +
-        Glob("build/core/*.cpp"),
+        Glob("build/core/*.cpp") +
+        Glob("build/*/{}/*.cpp".format(main_env["PLATFORM"])),
     )
