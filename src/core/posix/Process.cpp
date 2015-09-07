@@ -23,23 +23,28 @@
 
 
 #include <core/Process.hpp>
+#include <core/posix/POpenHelper.hpp>
 
+#include <string>
 #include <stdexcept>
 
 namespace core
 {
     struct Process::Impl
     {
+        Impl() = default;
         Impl(signed int pid) : m_pid(pid) {}
 
-        bool started_by(std::string application);
+        bool started_by(const std::string& application) const;
 
     private:
+        std::string run_application(const std::string& cmdline) const;
+
         signed int m_pid;
     };
 
     // Normal constructors.
-
+    Process::Process() : pimpl(new Impl) {}
     Process::Process(signed int pid) : pimpl(new Impl(pid)) {}
     // Must not be called on POSIX -- PID is a signed int!
     Process::Process(unsigned int)
@@ -62,7 +67,7 @@ namespace core
 
     // Forwarding.
 
-    bool Process::started_by(const std::string& application)
+    bool Process::started_by(const std::string& application) const
     {
         return pimpl->started_by(application);
     }
@@ -70,9 +75,39 @@ namespace core
     // A process has been started by an application if we look up
     // its original command line using PS and the first component
     // equals `application`.
-    bool Process::Impl::started_by(const std::string& application)
+    bool Process::Impl::started_by(const std::string& application) const
     {
+        #ifdef TEST_PROCESS_BY_EXE
+            std::string my_exe = run_application(
+                "readlink /proc/"+std::to_string(m_pid)+"/exe"
+                );
+            return application == my_exe;
+        #else
+            #ifdef TEST_PROCESS_BY_CMDLINE
+                // get cmdline from /proc
+                // ifstream /proc/pid/cmdline
+            #else
+                #ifdef TEST_PROCESS_BY_PIDOF
+                    // get pid from pidof
+                    // pidof name
+                #else
+                    // get name from ps
+                    // ps -p pid -o comm=
+                #endif
+            #endif
+        #endif
+    }
 
+    std::string Process::Impl::run_application(const std::string& cmdline) const
+    {
+        POpenHelper poh;
+        try {
+            poh.open(cmdline);
+        }
+        catch (const std::runtime_error&) {
+            return "";
+        }
+        return poh.get_output();
     }
 }
 

@@ -27,20 +27,14 @@
 
 #pragma once
 
-#include <string>
 #include <memory>
 
 namespace core
 {
     class Process
     {
-    private:
-        Process();
-        // PIMPL idiom.
-        struct Impl;
-        std::unique_ptr<Impl> pimpl;
-
     public:
+        Process();
         explicit Process(signed int pid);
         explicit Process(unsigned int pid);
         Process(const Process& rhs);
@@ -52,6 +46,11 @@ namespace core
         // What the string application actually is, is platform-dependent.
         // It could be a command line, a path to an executable, or
         // an UUID. We just don't know.
-        bool started_by(const std::string& application);
+        bool started_by(const std::string& application) const;
+
+    private:
+        // PIMPL idiom.
+        struct Impl;
+        std::unique_ptr<Impl> pimpl;
     };
 }
