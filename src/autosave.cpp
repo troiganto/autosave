@@ -22,25 +22,30 @@
  */
 
 #include <autosave.hpp>
-#include <core/Settings.hpp>
+#include <core/Communicator.hpp>
 
 #include <iostream>
-
+#include <chrono>
+#include <thread>
 
 int main()
 {
     using namespace std;
 
-    core::Settings settings;
-    settings.set_verbosity(99);
+    std::string firefox("/usr/lib64/firefox/firefox");
+    core::Communicator com;
 
-    core::Settings::Mask mask;
-    mask.set(core::Settings::Bits::VERBOSITY);
-
-    core::Settings another(settings, ~mask);
-
-    cout << "Hello world!" << endl;
-    cout << (settings == another) << endl;
+    while (true) {
+        this_thread::sleep_for(chrono::seconds(1));
+        core::Process proc = com.get_active_process();
+        //~ if (com.get_active_process().started_by(firefox)) {
+            //~ cout << "\u2713";
+        //~ }
+        //~ else {
+            //~ cout << "\u2717";
+        //~ }
+        cout.flush();
+    }
 
     return 0;
 }
