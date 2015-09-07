@@ -53,6 +53,8 @@ namespace core
 
     Process Communicator::Impl::get_active_process() const
     {
-        return Process(m_xdo.get_active_window_pid());
+        const XDo::Window window = m_xdo.get_active_window();
+        const int pid = m_xdo.get_pid_window(window);
+        return Process(pid);
     }
 }

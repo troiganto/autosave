@@ -53,11 +53,17 @@ namespace core
             // We avoid exposing the libX11 type Window because then,
             // we'd have to include X11/X.h. And this file pollutes
             // the global namespace *badly*.
+            // X11/X.h defines Window as XID.
+            // It further defines XID as either unsigned long or unsigned int.
+            // By choosing unsigned long for core::XDo::Window, we play
+            // it safe.
+            typedef unsigned long Window;
 
-            int get_active_window_pid() const;
+            Window get_active_window() const;
+            int get_pid_window(Window window) const;
 
             std::pair<unsigned int, unsigned int>
-            get_active_window_size() const;
+            get_window_size(Window window) const;
 
         private:
             struct xdo* m_context;

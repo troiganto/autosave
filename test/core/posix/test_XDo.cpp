@@ -27,14 +27,17 @@ go_bandit([](){
 
         it("can give the active window", [&](){
             XDo xdo;
-            const auto size = xdo.get_active_window_size();
+            const XDo::Window window = xdo.get_active_window();
+            const auto size = xdo.get_window_size(window);
+            AssertThat(window, Is().GreaterThan(0));
             AssertThat(size.first, Is().GreaterThan(0));
             AssertThat(size.second, Is().GreaterThan(0));
         });
 
         it("can get a window's PID", [&](){
             XDo xdo;
-            const int pid = xdo.get_active_window_pid();
+            const XDo::Window window = xdo.get_active_window();
+            const int pid = xdo.get_pid_window(window);
             AssertThat(pid, Is().Not().EqualTo(0));
         });
 

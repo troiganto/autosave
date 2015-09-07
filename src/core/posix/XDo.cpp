@@ -28,24 +28,6 @@ extern "C" {
     #include <xdo.h>
 }
 
-namespace {
-    // Helper function to get the active window.
-    // This is not a private method because we *need* to
-    // avoid declaring the Window type from X11/X.h outside
-    // of this compilation unit.
-    Window get_active_window(xdo_t* context)
-    {
-        Window window;
-        const int ret_code = xdo_get_active_window(context, &window);
-        if (ret_code) {
-            throw core::XDoError("xdo_get_active_window failed");
-        }
-        else {
-            return window;
-        }
-    }
-}
-
 namespace core
 {
     XDo::XDo(const char* display)
@@ -54,10 +36,6 @@ namespace core
         if (m_context == nullptr) {
             throw XDoError("xdo_new failed");
         }
-        // If debugging, turn on noisy libxdo errors.
-        #ifndef NDEBUG
-        m_context->quiet = false;
-        #endif
     }
 
     XDo::~XDo()
@@ -68,10 +46,24 @@ namespace core
         }
     }
 
-    int XDo::get_active_window_pid() const
+    Window XDo::get_active_window() const
     {
-        Window window = ::get_active_window(m_context);
-        int pid = xdo_get_pid_window(m_context, window);
+        // Declare X11 window.
+        ::Window window;
+        const int ret_code = xdo_get_active_window(m_context, &window);
+        if (ret_code) {
+            throw core::XDoError("xdo_get_active_window failed");
+        }
+        else {
+            return static_cast<Window>(window);
+        }
+    }
+
+    int XDo::get_pid_window(Window window) const
+    {
+        // Convert from core::XDo::Window to X11 window.
+        int pid = xdo_get_pid_window(m_context,
+                                     static_cast<::Window>(window));
         if (!pid) {
             throw XDoError("xdo_get_pid_window failed");
         }
@@ -81,12 +73,13 @@ namespace core
     }
 
     std::pair<unsigned int, unsigned int>
-    XDo::get_active_window_size() const
+    XDo::get_window_size(Window window) const
     {
         unsigned int width, height;
-        Window window = ::get_active_window(m_context);
+        // Convert from core::XDo::Window to X11 window.
         const int ret_code = xdo_get_window_size(
-            m_context, window, &width, &height);
+            m_context, static_cast<::Window>(window),
+            &width, &height);
         if (ret_code) {
             throw XDoError("xdo_get_window_size failed");
         }
