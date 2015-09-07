@@ -28,41 +28,70 @@ extern "C" {
     #include <xdo.h>
 }
 
-namespace core
-{
-    XDo::XDo(const char* display)
-    {
-        m_context = xdo_new(display);
-        if (!m_context) {
-            throw XDoError("xdo_new failed");
-        }
-    }
-
-    XDo::~XDo()
-    {
-        xdo_free(m_context);
-    }
-
-    Window XDo::get_active_window() const
+namespace {
+    // Helper function to get the active window.
+    // This is not a private method because we *need* to
+    // avoid declaring the Window type from X11/X.h outside
+    // of this compilation unit.
+    Window get_active_window(xdo_t* context)
     {
         Window window;
-        const int ret_code = xdo_get_active_window(m_context, &window);
+        const int ret_code = xdo_get_active_window(context, &window);
         if (ret_code) {
-            throw XDoError("xdo_get_active_window failed");
+            throw core::XDoError("xdo_get_active_window failed");
         }
         else {
             return window;
         }
     }
+}
 
-    int XDo::get_pid_window(Window window) const
+namespace core
+{
+    XDo::XDo(const char* display)
     {
+        m_context = xdo_new(display);
+        if (m_context == nullptr) {
+            throw XDoError("xdo_new failed");
+        }
+        // If debugging, turn on noisy libxdo errors.
+        #ifndef NDEBUG
+        m_context->quiet = false;
+        #endif
+    }
+
+    XDo::~XDo()
+    {
+        if (m_context != nullptr) {
+            xdo_free(m_context);
+            m_context = nullptr;
+        }
+    }
+
+    int XDo::get_active_window_pid() const
+    {
+        Window window = ::get_active_window(m_context);
         int pid = xdo_get_pid_window(m_context, window);
         if (!pid) {
             throw XDoError("xdo_get_pid_window failed");
         }
         else {
             return pid;
+        }
+    }
+
+    std::pair<unsigned int, unsigned int>
+    XDo::get_active_window_size() const
+    {
+        unsigned int width, height;
+        Window window = ::get_active_window(m_context);
+        const int ret_code = xdo_get_window_size(
+            m_context, window, &width, &height);
+        if (ret_code) {
+            throw XDoError("xdo_get_window_size failed");
+        }
+        else {
+            return std::make_pair(width, height);
         }
     }
 

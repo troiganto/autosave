@@ -28,13 +28,11 @@
 
 #include <string>
 #include <stdexcept>
+#include <utility>
 
 extern "C" {
     // Forward declaration of otherwise hidden struct.
     struct xdo;
-
-    // For declaration of type Window.
-    #include <X11/X.h>
 }
 
 namespace core
@@ -52,11 +50,17 @@ namespace core
             XDo(const char* display=nullptr);
             ~XDo();
 
-            Window get_active_window() const;
-            int get_pid_window(Window window) const;
+            // We avoid exposing the libX11 type Window because then,
+            // we'd have to include X11/X.h. And this file pollutes
+            // the global namespace *badly*.
+
+            int get_active_window_pid() const;
+
+            std::pair<unsigned int, unsigned int>
+            get_active_window_size() const;
 
         private:
             struct xdo* m_context;
     };
-    }
+}
 
