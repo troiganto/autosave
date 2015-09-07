@@ -27,11 +27,10 @@
 #pragma once
 
 #include <memory>
+#include <core/Process.hpp>
 
 namespace core
 {
-    class Process;
-
     class Communicator
     {
     public:
