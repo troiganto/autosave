@@ -1,3 +1,6 @@
+
+import os
+
 # Declare default build environment.
 
 VariantDir("build", "src", duplicate=0)
@@ -64,6 +67,7 @@ test_env = main_env.Clone()
 test_env.Append(
     LIBPATH = ["./build"],
     LIBS = ["autosave"],
+    ENV = os.environ,
     )
 
 test_env.Command(
