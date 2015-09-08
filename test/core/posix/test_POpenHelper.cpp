@@ -5,6 +5,11 @@
 #include <string>
 #include <stdexcept>
 
+// POSIX header
+extern "C" {
+    #include <unistd.h>
+}
+
 using namespace core;
 using namespace bandit;
 
@@ -12,7 +17,7 @@ go_bandit([](){
 
     describe("A POpenHelper", [](){
 
-        it("can call other programs", [](){
+        it("has a default constructor", [](){
             POpenHelper poh;
         });
 

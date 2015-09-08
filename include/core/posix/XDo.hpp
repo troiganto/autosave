@@ -65,6 +65,20 @@ namespace core
             std::pair<unsigned int, unsigned int>
             get_window_size(Window window) const;
 
+            void enter_text_window(Window window, const char* text,
+                                   unsigned int delay_microsecs=12000);
+            void enter_text_window(Window window, const std::string& text,
+                                   unsigned int delay_microsecs=12000);
+
+            void send_keysequence_window(Window window,
+                                         const char* sequence,
+                                         unsigned int delay_microsecs=12000);
+            void send_keysequence_window(Window window,
+                                         const std::string& sequence,
+                                         unsigned int delay_microsecs=12000);
+
+            bool window_exists(Window window) const;
+
         private:
             struct xdo* m_context;
     };

@@ -1,5 +1,6 @@
 
 #include <core/posix/XDo.hpp>
+#include <core/posix/POpenHelper.hpp>
 using namespace core;
 
 
@@ -7,6 +8,11 @@ using namespace core;
 
 #include <string>
 #include <stdexcept>
+
+// POSIX header
+extern "C" {
+    #include <unistd.h>
+}
 
 using namespace bandit;
 
@@ -39,6 +45,16 @@ go_bandit([](){
             const XDo::Window window = xdo.get_active_window();
             const int pid = xdo.get_pid_window(window);
             AssertThat(pid, Is().Not().EqualTo(0));
+        });
+
+        it("recognizes open and closed windows", [&](){
+            XDo xdo;
+            POpenHelper poh("gedit & sleep 2s && kill -1 %1");
+            sleep(1);
+            XDo::Window window = xdo.get_active_window();
+            AssertThat(xdo.window_exists(window), IsTrue());
+            sleep(2);
+            AssertThat(xdo.window_exists(window), IsFalse());
         });
 
     });

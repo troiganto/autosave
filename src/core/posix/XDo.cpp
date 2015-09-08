@@ -88,4 +88,51 @@ namespace core
         }
     }
 
+    void XDo::enter_text_window(Window window, const char* text, unsigned int delay_microsecs)
+    {
+        const int ret_code = xdo_enter_text_window(
+            m_context,
+            static_cast<::Window>(window),
+            text,
+            static_cast<::useconds_t>(delay_microsecs)
+            );
+        if (ret_code) {
+            throw XDoError("xdo_enter_text_window failed");
+        }
+    }
+
+    void XDo::enter_text_window(Window window, const std::string& text, unsigned int delay_microsecs)
+    {
+        enter_text_window(window, text.c_str(), delay_microsecs);
+    }
+
+    void XDo::send_keysequence_window(Window window, const char* sequence,
+                                      unsigned int delay_microsecs)
+    {
+        const int ret_code = xdo_send_keysequence_window(
+            m_context,
+            static_cast<::Window>(window),
+            sequence,
+            static_cast<::useconds_t>(delay_microsecs)
+            );
+        if (ret_code) {
+            throw XDoError("xdo_send_keysequence_window failed");
+        }
+    }
+
+    void XDo::send_keysequence_window(Window window, const std::string& sequence,
+                                      unsigned int delay_microsecs)
+    {
+        send_keysequence_window(window, sequence.c_str(), delay_microsecs);
+    }
+
+    bool XDo::window_exists(Window window) const
+    {
+        int ret_code = xdo_get_window_size(
+            m_context, static_cast<::Window>(window), nullptr, nullptr);
+        // if ret_code != 0, an error occured -- most likely BadWindow.
+        // We don't have a way to catch BadWindow yet.
+        // Maybe xcb can give us some relief?
+        return ret_code == 0;
+    }
 }
