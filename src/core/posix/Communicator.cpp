@@ -24,7 +24,7 @@
 
 #include <core/Communicator.hpp>
 #include <core/Process.hpp>
-#include <core/posix/XDo.hpp>
+#include <core/posix/XConnection.hpp>
 
 namespace core
 {
@@ -34,7 +34,7 @@ namespace core
         Process get_active_process() const;
 
     private:
-        XDo m_xdo;
+        X11::XConnection m_xconn;
     };
 
     Communicator::Communicator() : pimpl(new Impl) {}
@@ -53,8 +53,8 @@ namespace core
 
     Process Communicator::Impl::get_active_process() const
     {
-        const XDo::Window window = m_xdo.get_active_window();
-        const int pid = m_xdo.get_pid_window(window);
+        const X11::Window window = m_xconn.get_active_window();
+        const unsigned long pid = m_xconn.get_pid_window(window);
         return Process(pid);
     }
 }

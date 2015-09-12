@@ -12,19 +12,10 @@ default_env = Environment(
 
 if not default_env.GetOption('clean'):
     conf = Configure(default_env)
-    # Check first if libxdo is available at all.
-    if not conf.CheckLib("xdo", autoadd=False):
-        print "Did not find libxdo.a or xdo.lib, exiting"
-        Exit(1)
-    # After that, do a more granular check for a specific function.
-    # This is necessary because libxdo changed its API at some point.
-    # And we want to get the right version.
-    if not conf.CheckLibWithHeader(libs=["xdo"], header="xdo.h",
-                                   call="xdo_get_active_window(0, 0);",
-                                   language="C"):
-        print "Did not find function xdo_get_active_window, exiting"
-        print "(Make sure you have the latest version of libxdo)"
-        Exit(1)
+    for libname in ["xcb", "xcb-keysyms", "xcb-xtest"]:
+        if not conf.CheckLib(libname):
+            print "Did not find lib{}, exiting".format(libname)
+            Exit(1)
     default_env = conf.Finish()
 
 # Declare diverging release and debug environments.

@@ -29,7 +29,7 @@
 #include <vector>
 #include <string>
 #include <bitset>
-#include <core/Hotkey.hpp>
+#include <core/KeyCombo.hpp>
 #include <core/Verbosity.hpp>
 
 
@@ -51,7 +51,7 @@ namespace core
         enum Bits
         {
             INTERVAL = 0,
-            HOTKEY,
+            KEY_COMBO,
             VERBOSITY,
             TARGET_APPS,
             CMDLINE
@@ -73,13 +73,13 @@ namespace core
 
         // Setter functions.
         void set_interval(unsigned int rhs);
-        void set_hotkey(Hotkey rhs);
+        void set_key_combo(KeyCombo rhs);
         void set_verbosity(Verbosity::Verbosity rhs);
         void set_verbosity(unsigned int rhs);
 
         // Getter functions.
         inline unsigned int get_interval() const { return m_interval; }
-        inline Hotkey get_hotkey() const { return m_hotkey; }
+        inline KeyCombo get_key_combo() const { return m_combo; }
         inline Verbosity::Verbosity get_verbosity() const { return m_verbosity; }
 
         // Extended getter functions.
@@ -87,7 +87,7 @@ namespace core
 
     private:
         unsigned int m_interval;                // Seconds after which to send input.
-        Hotkey m_hotkey;                        // Input to be sent.
+        KeyCombo m_combo;                       // Input to be sent.
         Verbosity::Verbosity m_verbosity;       // Verbosity level of Autosave.
         std::vector<std::string> m_target_apps; // Apps to which to send hotkey when active.
         std::string m_cmdline;                  // Command line to execute, resulting process

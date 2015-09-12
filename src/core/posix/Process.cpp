@@ -33,25 +33,19 @@ namespace core
     struct Process::Impl
     {
         Impl() = default;
-        Impl(signed int pid) : m_pid(pid) {}
+        Impl(unsigned long pid) : m_pid(pid) {}
 
         bool started_by(const std::string& application) const;
 
     private:
         std::string run_application(const std::string& cmdline) const;
 
-        signed int m_pid;
+        unsigned long m_pid;
     };
 
     // Normal constructors.
     Process::Process() : pimpl(new Impl) {}
-    Process::Process(signed int pid) : pimpl(new Impl(pid)) {}
-    // Must not be called on POSIX -- PID is a signed int!
-    Process::Process(unsigned int)
-    {
-        throw std::logic_error("Called wrong PID constructor on core::Process");
-    }
-
+    Process::Process(unsigned long pid) : pimpl(new Impl(pid)) {}
     // Copy and move constructors and destructor.
     Process::Process(const Process& rhs) : pimpl(new Impl(*rhs.pimpl)) {}
     Process& Process::operator =(const Process& rhs)

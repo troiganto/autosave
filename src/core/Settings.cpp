@@ -22,8 +22,6 @@
  */
 
 #include <core/Settings.hpp>
-#include <core/Verbosity.hpp>
-#include <core/Hotkey.hpp>
 
 #include <algorithm>
 #include <utility>
@@ -33,13 +31,11 @@ namespace core
 
 Settings::Settings()
     : m_interval {300}
-    , m_hotkey {'S', 0}
+    , m_combo(false, true, false, 's')
     , m_verbosity {Verbosity::Verbosity::MINIMUM}
     , m_target_apps {}
     , m_cmdline {}
 {
-    // Turn m_hotkey from "s" to "ctrl+s"
-    m_hotkey.modifiers.set(Hotkey::Modifiers::PRIMARY);
 }
 
 Settings::Settings(const Settings& rhs, Settings::Mask mask)
@@ -47,8 +43,8 @@ Settings::Settings(const Settings& rhs, Settings::Mask mask)
     if (mask[Settings::Bits::INTERVAL]) {
         m_interval = rhs.m_interval;
     }
-    if (mask[Settings::Bits::HOTKEY]) {
-        m_hotkey = rhs.m_hotkey;
+    if (mask[Settings::Bits::KEY_COMBO]) {
+        m_combo = rhs.m_combo;
     }
     if (mask[Settings::Bits::VERBOSITY]) {
         m_verbosity = rhs.m_verbosity;
@@ -66,8 +62,8 @@ Settings::Settings(Settings&& rhs, Settings::Mask mask)
     if (mask[Settings::Bits::INTERVAL]) {
         m_interval = rhs.m_interval;
     }
-    if (mask[Settings::Bits::HOTKEY]) {
-        m_hotkey = rhs.m_hotkey;
+    if (mask[Settings::Bits::KEY_COMBO]) {
+        m_combo = rhs.m_combo;
     }
     if (mask[Settings::Bits::VERBOSITY]) {
         m_verbosity = rhs.m_verbosity;
@@ -84,7 +80,7 @@ bool operator ==(const Settings& lhs, const Settings& rhs)
 {
     return (
         lhs.m_interval == rhs.m_interval &&
-        lhs.m_hotkey == rhs.m_hotkey &&
+        lhs.m_combo == rhs.m_combo &&
         lhs.m_verbosity == rhs.m_verbosity &&
         lhs.m_target_apps == rhs.m_target_apps &&
         lhs.m_cmdline == rhs.m_cmdline
@@ -96,9 +92,9 @@ void Settings::set_interval(unsigned int rhs)
     m_interval = std::min(std::max(rhs, interval::MINIMUM), interval::MAXIMUM);
 }
 
-void Settings::set_hotkey(Hotkey rhs)
+void Settings::set_key_combo(KeyCombo rhs)
 {
-    m_hotkey = rhs;
+    m_combo = rhs;
 }
 
 void Settings::set_verbosity(Verbosity::Verbosity rhs)

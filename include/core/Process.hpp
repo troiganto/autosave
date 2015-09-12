@@ -35,8 +35,7 @@ namespace core
     {
     public:
         Process();
-        explicit Process(signed int pid);
-        explicit Process(unsigned int pid);
+        explicit Process(unsigned long pid);
         Process(const Process& rhs);
         Process& operator =(const Process& rhs);
         Process(Process&& rhs);
