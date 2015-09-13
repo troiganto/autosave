@@ -28,6 +28,8 @@
 #include <string>
 #include <cstdio>
 
+// TODO: Add killing capability (http://stackoverflow.com/questions/548063)
+
 
 namespace core
 {
