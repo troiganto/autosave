@@ -29,6 +29,7 @@
 #include <vector>
 #include <string>
 #include <bitset>
+#include <chrono>
 #include <core/KeyCombo.hpp>
 #include <core/Verbosity.hpp>
 
@@ -39,8 +40,8 @@ namespace core
     namespace interval
     {
         // Minimum interval is 5 seconds, maximum is 1 day.
-        constexpr unsigned int MINIMUM = 5;
-        constexpr unsigned int MAXIMUM = 24 * 60 * 60;
+        constexpr std::chrono::seconds MINIMUM {5};
+        constexpr std::chrono::seconds MAXIMUM {24 * 60 * 60};
     }
 
     class Settings
@@ -72,13 +73,13 @@ namespace core
         friend bool operator !=(const Settings& lhs, const Settings& rhs);
 
         // Setter functions.
-        void set_interval(unsigned int rhs);
+        void set_interval(std::chrono::seconds rhs);
         void set_key_combo(KeyCombo rhs);
         void set_verbosity(Verbosity rhs);
         void set_verbosity(int rhs);
 
         // Getter functions.
-        inline unsigned int get_interval() const { return m_interval; }
+        inline std::chrono::seconds get_interval() const { return m_interval; }
         inline KeyCombo get_key_combo() const { return m_combo; }
         inline Verbosity get_verbosity() const { return m_verbosity; }
 
@@ -86,9 +87,9 @@ namespace core
         bool verbosity_exceeds(Verbosity minimal) const;
 
     private:
-        unsigned int m_interval;                // Seconds after which to send input.
+        std::chrono::seconds m_interval;        // Seconds after which to send input.
         KeyCombo m_combo;                       // Input to be sent.
-        Verbosity m_verbosity;       // Verbosity level of Autosave.
+        Verbosity m_verbosity;                  // Verbosity level of Autosave.
         std::vector<std::string> m_target_apps; // Apps to which to send hotkey when active.
         std::string m_cmdline;                  // Command line to execute, resulting process
                                                 // becomes lone target of Autosave.

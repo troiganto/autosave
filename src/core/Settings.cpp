@@ -89,7 +89,7 @@ namespace core
             );
     }
 
-    void Settings::set_interval(unsigned int rhs)
+    void Settings::set_interval(std::chrono::seconds rhs)
     {
         m_interval = std::min(std::max(rhs, interval::MINIMUM), interval::MAXIMUM);
     }
