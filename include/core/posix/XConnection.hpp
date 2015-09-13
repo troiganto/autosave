@@ -54,7 +54,6 @@ namespace core
         // Avoid exposing the C libraries in the header by declaring
         // our own typedefs.
         typedef unsigned long Window;
-        typedef unsigned long Atom;
 
         class XConnection
         {
@@ -62,12 +61,16 @@ namespace core
                 XConnection(const char* display=nullptr);
                 ~XConnection();
 
-                Window get_active_window() const noexcept;
+                Window get_parent(Window child) const;
+
+                Window get_input_focus() const noexcept;
+
+                Window get_active_window() const;
 
                 unsigned long get_pid_window(Window window) const;
 
-                // Delay is measured in microseconds.
-                void send_key_combo(Window window, const core::KeyCombo& combo);
+                void send_key_combo(const core::KeyCombo& combo);
+                void send_key_combo(const core::KeyCombo& combo, Window window);
 
                 std::string get_window_title(Window window) const;
 

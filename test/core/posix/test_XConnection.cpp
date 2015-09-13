@@ -35,30 +35,45 @@ go_bandit([](){
             X11::XConnection x;
             const auto window = x.get_active_window();
             const auto title = x.get_window_title(window);
-            AssertThat(window, Is().GreaterThan(1));
-            AssertThat(title, Equals(""));
+
+            AssertThat(window, Is().GreaterThan(0));
+            AssertThat(title, Is().Not().EqualTo(""));
         });
 
-        it("can get a window's PID", [&](){
+        it("can give the input focus", [&](){
             X11::XConnection x;
-            POpenHelper poh("gedit & sleep 2s && kill -1 %1");
-            sleep(1);
-            const auto window = x.get_active_window();
-            const auto pid = x.get_pid_window(window);
-            sleep(2);
-            AssertThat(pid, Is().Not().EqualTo(0));
+            const auto window = x.get_input_focus();
+            AssertThat(window, Is().GreaterThan(0));
         });
 
-        it("recognizes open and closed windows", [&](){
+        it("knows the difference between input focus and active window", [&](){
             X11::XConnection x;
-            POpenHelper poh("gedit & sleep 1s && kill -1 %1");
-            usleep(500000);
-            const auto window = x.get_active_window();
-            AssertThat(x.window_exists(window), IsTrue());
-            sleep(1);
-            AssertThat(x.window_exists(window), IsFalse());
+            const auto focus = x.get_input_focus();
+            const auto active = x.get_active_window();
+            AssertThat(x.get_parent(focus), Equals(active));
         });
 
+        xdescribe("when interacting with gedit", [&](){
+            it("can get a window's PID", [&](){
+                X11::XConnection x;
+                POpenHelper poh("gedit & sleep 2s && kill -1 %1");
+                sleep(1);
+                const auto window = x.get_active_window();
+                const auto pid = x.get_pid_window(window);
+                sleep(2);
+                AssertThat(pid, Is().Not().EqualTo(0));
+            });
+
+            it("recognizes open and closed windows", [&](){
+                X11::XConnection x;
+                POpenHelper poh("gedit & sleep 2s && kill -1 %1");
+                sleep(1);
+                const auto window = x.get_active_window();
+                AssertThat(x.window_exists(window), IsTrue());
+                sleep(2);
+                AssertThat(x.window_exists(window), IsFalse());
+            });
+        });
     });
 
 });
