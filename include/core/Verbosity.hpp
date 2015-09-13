@@ -25,29 +25,35 @@
 
 #pragma once
 
+#include <stdexcept>
+
 namespace core
 {
-    namespace Verbosity
+    enum Verbosity{ QUIET
+                  , COUNTDOWN_ICONS
+                  , ALERT_START
+                  , ALERT_FIVE_SEC
+                  , MINIMUM = QUIET
+                  , MAXIMUM = ALERT_FIVE_SEC
+                  };
+
+    constexpr Verbosity to_verbosity(int i)
     {
-        enum Verbosity : unsigned int
-        {
-            MINIMUM = 0,
-            QUIET = MINIMUM,
-            SHOW_ICONS,
-            ALERT_START,
-            ALERT_FIVE_SECONDS,
-            MAXIMUM = ALERT_FIVE_SECONDS
-        };
+        return (i < static_cast<int>(Verbosity::MINIMUM)) ? Verbosity::MINIMUM :
+               (i > static_cast<int>(Verbosity::MAXIMUM)) ? Verbosity::MAXIMUM :
+               static_cast<Verbosity>(i);
+    }
 
-        // Convert an enum to int.
-        inline unsigned int to_int(Verbosity verbosity) {
-            return static_cast<unsigned int>(verbosity);
-        }
+    constexpr Verbosity to_verbosity_strict(int i)
+    {
+        return (i < static_cast<int>(Verbosity::MINIMUM) ||
+                i > static_cast<int>(Verbosity::MAXIMUM)) ?
+            throw std::out_of_range("to_verbosity") :
+            static_cast<Verbosity>(i);
+    }
 
-        // Convert int to Verbosity. Throw out_of_range error if necessary.
-        Verbosity to_enum_strict(unsigned int i);
-
-        // Convert int to Verbosity. Clamp out-of-range values to min/max.
-        Verbosity to_enum(unsigned int i);
+    constexpr int from_verbosity(Verbosity v)
+    {
+        return static_cast<int>(v);
     }
 }

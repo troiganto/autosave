@@ -29,88 +29,90 @@
 namespace core
 {
 
-Settings::Settings()
-    : m_interval {300}
-    , m_combo(false, true, false, 's')
-    , m_verbosity {Verbosity::Verbosity::MINIMUM}
-    , m_target_apps {}
-    , m_cmdline {}
-{
-}
+    Settings::Settings()
+        : m_interval {300}
+        , m_combo(false, true, false, 's')
+        , m_verbosity {Verbosity::QUIET}
+        , m_target_apps {}
+        , m_cmdline {}
+    {
+    }
 
-Settings::Settings(const Settings& rhs, Settings::Mask mask)
-{
-    if (mask[Settings::Bits::INTERVAL]) {
-        m_interval = rhs.m_interval;
+    Settings::Settings(const Settings& rhs, Settings::Mask mask)
+        : Settings()
+    {
+        if (mask[Bits::INTERVAL]) {
+            m_interval = rhs.m_interval;
+        }
+        if (mask[Bits::KEY_COMBO]) {
+            m_combo = rhs.m_combo;
+        }
+        if (mask[Bits::VERBOSITY]) {
+            m_verbosity = rhs.m_verbosity;
+        }
+        if (mask[Bits::TARGET_APPS]) {
+            m_target_apps = rhs.m_target_apps;
+        }
+        if (mask[Bits::CMDLINE]) {
+            m_cmdline = rhs.m_cmdline;
+        }
     }
-    if (mask[Settings::Bits::KEY_COMBO]) {
-        m_combo = rhs.m_combo;
-    }
-    if (mask[Settings::Bits::VERBOSITY]) {
-        m_verbosity = rhs.m_verbosity;
-    }
-    if (mask[Settings::Bits::TARGET_APPS]) {
-        m_target_apps = rhs.m_target_apps;
-    }
-    if (mask[Settings::Bits::CMDLINE]) {
-        m_cmdline = rhs.m_cmdline;
-    }
-}
 
-Settings::Settings(Settings&& rhs, Settings::Mask mask)
-{
-    if (mask[Settings::Bits::INTERVAL]) {
-        m_interval = rhs.m_interval;
+    Settings::Settings(Settings&& rhs, Settings::Mask mask)
+        : Settings()
+    {
+        if (mask[Bits::INTERVAL]) {
+            m_interval = rhs.m_interval;
+        }
+        if (mask[Bits::KEY_COMBO]) {
+            m_combo = rhs.m_combo;
+        }
+        if (mask[Bits::VERBOSITY]) {
+            m_verbosity = rhs.m_verbosity;
+        }
+        if (mask[Bits::TARGET_APPS]) {
+            m_target_apps = std::move(rhs.m_target_apps);
+        }
+        if (mask[Bits::CMDLINE]) {
+            m_cmdline = std::move(rhs.m_cmdline);
+        }
     }
-    if (mask[Settings::Bits::KEY_COMBO]) {
-        m_combo = rhs.m_combo;
+
+    bool operator ==(const Settings& lhs, const Settings& rhs)
+    {
+        return (
+            lhs.m_interval == rhs.m_interval &&
+            lhs.m_combo == rhs.m_combo &&
+            lhs.m_verbosity == rhs.m_verbosity &&
+            lhs.m_target_apps == rhs.m_target_apps &&
+            lhs.m_cmdline == rhs.m_cmdline
+            );
     }
-    if (mask[Settings::Bits::VERBOSITY]) {
-        m_verbosity = rhs.m_verbosity;
+
+    void Settings::set_interval(unsigned int rhs)
+    {
+        m_interval = std::min(std::max(rhs, interval::MINIMUM), interval::MAXIMUM);
     }
-    if (mask[Settings::Bits::TARGET_APPS]) {
-        m_target_apps = std::move(rhs.m_target_apps);
+
+    void Settings::set_key_combo(KeyCombo rhs)
+    {
+        m_combo = rhs;
     }
-    if (mask[Settings::Bits::CMDLINE]) {
-        m_cmdline = std::move(rhs.m_cmdline);
+
+    void Settings::set_verbosity(Verbosity rhs)
+    {
+        m_verbosity = rhs;
     }
-}
 
-bool operator ==(const Settings& lhs, const Settings& rhs)
-{
-    return (
-        lhs.m_interval == rhs.m_interval &&
-        lhs.m_combo == rhs.m_combo &&
-        lhs.m_verbosity == rhs.m_verbosity &&
-        lhs.m_target_apps == rhs.m_target_apps &&
-        lhs.m_cmdline == rhs.m_cmdline
-        );
-}
+    void Settings::set_verbosity(int rhs)
+    {
+        m_verbosity = to_verbosity(rhs);
+    }
 
-void Settings::set_interval(unsigned int rhs)
-{
-    m_interval = std::min(std::max(rhs, interval::MINIMUM), interval::MAXIMUM);
-}
-
-void Settings::set_key_combo(KeyCombo rhs)
-{
-    m_combo = rhs;
-}
-
-void Settings::set_verbosity(Verbosity::Verbosity rhs)
-{
-    m_verbosity = rhs;
-}
-
-void Settings::set_verbosity(unsigned int rhs)
-{
-    m_verbosity = Verbosity::to_enum(rhs);
-}
-
-bool Settings::verbosity_exceeds(Verbosity::Verbosity minimal) const
-{
-    return m_verbosity >= minimal;
-}
+    bool Settings::verbosity_exceeds(Verbosity minimal) const
+    {
+        return m_verbosity >= minimal;
+    }
 
 }
 

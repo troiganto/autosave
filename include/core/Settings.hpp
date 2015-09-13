@@ -56,7 +56,7 @@ namespace core
             TARGET_APPS,
             CMDLINE
         };
-        typedef std::bitset<5> Mask;
+        typedef std::bitset<CMDLINE+1> Mask;
 
     public:
         // Constructors, destructor.
@@ -74,21 +74,21 @@ namespace core
         // Setter functions.
         void set_interval(unsigned int rhs);
         void set_key_combo(KeyCombo rhs);
-        void set_verbosity(Verbosity::Verbosity rhs);
-        void set_verbosity(unsigned int rhs);
+        void set_verbosity(Verbosity rhs);
+        void set_verbosity(int rhs);
 
         // Getter functions.
         inline unsigned int get_interval() const { return m_interval; }
         inline KeyCombo get_key_combo() const { return m_combo; }
-        inline Verbosity::Verbosity get_verbosity() const { return m_verbosity; }
+        inline Verbosity get_verbosity() const { return m_verbosity; }
 
         // Extended getter functions.
-        bool verbosity_exceeds(Verbosity::Verbosity minimal) const;
+        bool verbosity_exceeds(Verbosity minimal) const;
 
     private:
         unsigned int m_interval;                // Seconds after which to send input.
         KeyCombo m_combo;                       // Input to be sent.
-        Verbosity::Verbosity m_verbosity;       // Verbosity level of Autosave.
+        Verbosity m_verbosity;       // Verbosity level of Autosave.
         std::vector<std::string> m_target_apps; // Apps to which to send hotkey when active.
         std::string m_cmdline;                  // Command line to execute, resulting process
                                                 // becomes lone target of Autosave.
