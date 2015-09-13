@@ -6,7 +6,7 @@ import os
 VariantDir("build", "src", duplicate=0)
 default_env = Environment(
     CPPPATH = "./include",
-    CXXFLAGS = ["-std=c++11", "-pthread", "-Wall", "-Wextra"],
+    CXXFLAGS = ["-std=c++14", "-pthread", "-Wall", "-Wextra"],
     CPPFLAGS = ["-DTEST_PROCESS_BY_EXE"],
     )
 
