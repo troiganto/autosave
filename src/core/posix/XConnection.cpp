@@ -267,6 +267,8 @@ namespace core { namespace X11
     }
     void XConnection::Impl::send_key_combo(const core::KeyCombo& combo, xcb_window_t window)
     {
+        // For now, assume that KeyCombo's key code is an X11 keysym.
+        auto keycode = get_key_code(combo.get_key_code());
         if (combo.has_ctrl()) {
             send_fake_input(window, XCB_KEY_PRESS, m_ctrl_code);
         }
@@ -276,8 +278,8 @@ namespace core { namespace X11
         if (combo.has_alt()) {
             send_fake_input(window, XCB_KEY_PRESS, m_alt_code);
         }
-        send_fake_input(window, XCB_KEY_PRESS, combo.get_key_code());
-        send_fake_input(window, XCB_KEY_RELEASE, combo.get_key_code());
+        send_fake_input(window, XCB_KEY_PRESS, keycode);
+        send_fake_input(window, XCB_KEY_RELEASE, keycode);
         if (combo.has_alt()) {
             send_fake_input(window, XCB_KEY_RELEASE, m_alt_code);
         }
@@ -411,7 +413,7 @@ namespace core { namespace X11
             std::unique_ptr<xcb_keycode_t[]> keys(
                 xcb_key_symbols_get_keycode(m_syms, symbol));
             if (!keys) {
-                throw Error(0, "xcb_key_symbols_get_keycode");
+                throw Error(symbol, "xcb_key_symbols_get_keycode");
             }
             // Update memo.
             last_symbol = symbol;

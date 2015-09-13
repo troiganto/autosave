@@ -31,32 +31,24 @@ namespace core
 {
     class KeyCombo
     {
-        // Define sub-types.
-        enum Modifiers
-        {
-            CTRL = 0,
-            ALT = 1,
-            SHIFT = 2
-        };
-        typedef std::bitset<3> ModifierMask;
-
     public:
         KeyCombo(bool alt, bool ctrl, bool shift, unsigned int keycode)
-            : m_modifiers(), m_keycode(keycode)
-        {
-            m_modifiers[Modifiers::ALT] = alt;
-            m_modifiers[Modifiers::CTRL] = ctrl;
-            m_modifiers[Modifiers::SHIFT] = shift;
-        }
+            : m_alt(alt), m_ctrl(ctrl), m_shift(shift)
+            , m_keycode(keycode)
+        {}
+        explicit KeyCombo(unsigned int keycode)
+            : KeyCombo(false, false, false, keycode)
+        {}
         KeyCombo() : KeyCombo(false, false, false, 0) {}
+
         KeyCombo(const KeyCombo& rhs) = default;
         KeyCombo(KeyCombo&& rhs) = default;
         KeyCombo& operator =(const KeyCombo& rhs) = default;
         KeyCombo& operator =(KeyCombo&& rhs) = default;
 
-        inline bool has_alt() const { return m_modifiers[Modifiers::ALT]; }
-        inline bool has_ctrl() const { return m_modifiers[Modifiers::CTRL]; }
-        inline bool has_shift() const { return m_modifiers[Modifiers::SHIFT]; }
+        inline bool has_alt() const { return m_alt; }
+        inline bool has_ctrl() const { return m_ctrl; }
+        inline bool has_shift() const { return m_shift; }
         inline unsigned int get_key_code() const { return m_keycode; }
 
         // Operator overloads.
@@ -65,12 +57,18 @@ namespace core
 
     private:
         // Define fields.
-        ModifierMask m_modifiers;
+        bool m_alt;
+        bool m_ctrl;
+        bool m_shift;
         unsigned int m_keycode;
     };
 
     inline bool operator ==(const KeyCombo& lhs, const KeyCombo& rhs) {
-        return lhs.m_keycode == rhs.m_keycode && lhs.m_modifiers == rhs.m_modifiers;
+        return lhs.m_keycode == rhs.m_keycode
+            && lhs.m_alt == rhs.m_alt
+            && lhs.m_ctrl == rhs.m_ctrl
+            && lhs.m_shift == rhs.m_shift
+            ;
     }
     inline bool operator !=(const KeyCombo& lhs, const KeyCombo& rhs) {
         return !(lhs == rhs);
