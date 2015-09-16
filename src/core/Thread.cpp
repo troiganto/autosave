@@ -33,65 +33,49 @@ namespace core
     Thread::Thread(const Settings& settings)
         : m_settings(settings)
         , m_countdown(settings.get_interval())
-        , m_req_state(RequestedState::RUNNING)
         , m_thread()
+        , m_req_state(RequestedState::RUNNING)
+        , m_req_state_mutex()
+        , m_req_state_cv()
     {
 
     }
 
     Thread::~Thread()
     {
-        stop_and_join();
+        stop();
     }
 
-    void Thread::pause() noexcept
+    void Thread::set_requested_state(RequestedState new_state) noexcept
     {
+        // Note: STOPPED is a dead end.
         if (m_req_state != RequestedState::STOPPED) {
-            m_req_state = RequestedState::PAUSED;
-        }
-    }
-
-    void Thread::resume() noexcept
-    {
-        if (m_req_state != RequestedState::STOPPED) {
-            m_req_state = RequestedState::RUNNING;
-        }
-    }
-
-    void Thread::stop_and_join()
-    {
-        // Signal thread to stop.
-        m_req_state = RequestedState::STOPPED;
-        // Wait only if there is a point to it.
-        if (m_thread.joinable()) {
-            m_thread.join();
-        }
-    }
-
-    void Thread::stop_and_detach()
-    {
-        // Signal thread to stop.
-        m_req_state = RequestedState::STOPPED;
-        // Wait only if there is a point to it.
-        if (m_thread.joinable()) {
-            m_thread.detach();
+            // Reading the required state is fine, but for setting it,
+            // we need a lock on the mutex.
+            {
+                std::lock_guard lock(m_req_state_mutex);
+                m_req_state = new_state;
+            }
+            // State changed, lock released. Notify the sending thread.
+            m_req_state_cv.notify_one();
         }
     }
 
     void Thread::main()
     {
-        try {
-            while (!should_stop()) {
-                if (may_act()) {
-                    // Do something
-                }
-                // FIXME: Use condition variables instead.
-                std::this_thread::sleep_for(1s);
+        // This guarantees m_req_state to be consistent as long as we're
+        // not waiting.
+        std::unique_lock lock(m_req_state_mutex);
+        while (!should_stop()) {
+            // Wait for 1 second or until the requested state changes.
+            m_req_state_cv.wait_for(lock, 1s);
+            if (may_act()) {
+                // Do something.
             }
-        }
-        catch {
-            // Maybe do some logging?
-            // Catch all exceptions in any way to avoid std::terminate.
+            else if (should_pause()) {
+                // Wait until state "paused" is no longer requested.
+                m_req_state.wait(lock, [](){ return !should_pause(); });
+            }
         }
         // Cleanup.
     }
