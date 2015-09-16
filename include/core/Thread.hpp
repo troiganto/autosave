@@ -100,6 +100,8 @@ namespace core
 
         // The main routine of the thread.
         void main() noexcept;
+        // The actions taken every second.
+        void step();
 
     };
 }

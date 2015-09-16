@@ -77,6 +77,29 @@ namespace core
                 m_req_state.wait(lock, [](){ return !should_pause(); });
             }
         }
-        // Cleanup.
+        // Note: If *any* exception occurs here, the whole program is terminated.
+    }
+
+    void Thread::step()
+    {
+        //~ if delayed_sending_loop
+            //~ if active window matches
+                //~ send
+            //~ else if no window matches
+                //~ reset
+            //~ else
+                //~ pass
+        //~ else if five seconds left
+            //~ if no window matches
+                //~ reset
+            //~ else
+                //~ start countdown
+        //~ else if countdown at zero
+            //~ if active window matches
+                //~ send
+            //~ else
+                //~ go into delayed_sending_loop
+        //~ else
+            //~ pass
     }
 }
