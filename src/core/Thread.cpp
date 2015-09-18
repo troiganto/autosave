@@ -25,6 +25,7 @@
 #include "core/Thread.hpp"
 
 #include <stdexcept>
+#include <iostream>
 
 using namespace std::literals;
 
@@ -34,47 +35,55 @@ namespace core
         : m_settings(settings)
         , m_countdown(settings.get_interval())
         , m_thread()
-        , m_req_state(RequestedState::RUNNING)
+        , m_req_state(RequestedState::STOPPED)
         , m_req_state_mutex()
         , m_req_state_cv()
     {
-
+        std::cout << "Thread constructed" << std::endl;
     }
 
     Thread::~Thread()
     {
         stop();
+        std::cout << "Thread destructed" << std::endl;
+    }
+
+    // By having a separate function for actually starting the thread,
+    // we can be sure `this` is fully constructed when the thread
+    // starts going.
+    void Thread::start()
+    {
+        if (!m_thread.joinable() && m_req_state == RequestedState::STOPPED) {
+            // Extra scope for automatic locking/unlocking.
+            m_req_state = RequestedState::RUNNING;
+            m_thread = std::thread(&Thread::main, this);
+        }
     }
 
     void Thread::set_requested_state(RequestedState new_state) noexcept
     {
-        // Note: STOPPED is a dead end.
         if (m_req_state != RequestedState::STOPPED) {
-            // Reading the required state is fine, but for setting it,
-            // we need a lock on the mutex.
+            // Extra scope for automatic locking/unlocking.
             {
-                std::lock_guard lock(m_req_state_mutex);
+                std::lock_guard<std::mutex> lock(m_req_state_mutex);
                 m_req_state = new_state;
             }
-            // State changed, lock released. Notify the sending thread.
             m_req_state_cv.notify_one();
         }
     }
 
-    void Thread::main()
+    void Thread::main() noexcept
     {
-        // This guarantees m_req_state to be consistent as long as we're
-        // not waiting.
-        std::unique_lock lock(m_req_state_mutex);
+        std::unique_lock<std::mutex> lock(m_req_state_mutex);
         while (!should_stop()) {
             // Wait for 1 second or until the requested state changes.
             m_req_state_cv.wait_for(lock, 1s);
             if (may_act()) {
-                // Do something.
+                step();
             }
             else if (should_pause()) {
                 // Wait until state "paused" is no longer requested.
-                m_req_state.wait(lock, [](){ return !should_pause(); });
+                m_req_state_cv.wait(lock, [this](){ return !should_pause(); });
             }
         }
         // Note: If *any* exception occurs here, the whole program is terminated.

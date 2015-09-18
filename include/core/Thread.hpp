@@ -34,11 +34,31 @@
 
 #include <chrono>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 
 namespace core
 {
     class Thread
     {
+    public:
+        // The RequestedState is used by the main thread to control
+        // the sending thread.
+        enum class RequestedState {
+            RUNNING,    // Do actual work (counting down, sending, etc.).
+            PAUSED,     // Do nothing until resume() is called.
+            STOPPED     // End the thread as soon as possible.
+        };
+
+        // The SendState is used by the sending thread to give feedback
+        // to the main thread.
+        enum class SendState {
+            WAITING,    // There is quite some time till the next send event.
+            COUNTDOWN,  // Very close to the next send event.
+            OVERTIME,   // Should send, but no target window is focused.
+            SUCCESSFUL  // Successfully sent a keyboard event.
+        };
+
     public:
         // Initializes the object and *then* starts the background thread.
         Thread(const Settings& settings);
@@ -47,17 +67,17 @@ namespace core
 
         // Setter functions for the requested state.
 
-        // The thread keeps running, but it stops sending events.
-        // Do nothing if the thread has previously been requested to stop.
+        // stopped -> running
+        void start();
+        // running/paused -> paused
         inline void pause() noexcept {
             set_requested_state(RequestedState::PAUSED);
         }
-        // Resume sending if previously paused.
-        // Do nothing if the thread has previously been requested to stop.
+        // running/paused -> running
         inline void resume() noexcept {
             set_requested_state(RequestedState::RUNNING);
         }
-        // Stop running as soon as possible and join.
+        // running/paused -> stopped, also join the thread.
         inline void stop() {
             set_requested_state(RequestedState::STOPPED);
             if (m_thread.joinable()) {
@@ -65,38 +85,32 @@ namespace core
             }
         }
 
+        // Getter function for the sending thread's send state.
+
+
     private:
         const Settings& m_settings;
         std::chrono::seconds m_countdown;
         // The object representing the sending thread.
         std::thread m_thread;
 
-        // The requested state is used by the main thread to control
-        // the sending thread.
-        // The requested state may be PAUSED (do nothing, wait for further
-        // notice), RUNNING (do actual work), and STOPPED (halt work, end
-        // the sending thread as soon as possible.)
-
-        enum class RequestedState {
-            RUNNING,
-            PAUSED,
-            STOPPED
-        };
         volatile RequestedState m_req_state;
         std::mutex m_req_state_mutex;
         std::condition_variable m_req_state_cv;
         // The setter is only used by the main thread.
         void set_requested_state(RequestedState new_state) noexcept;
         // The getters are only used by the sending thread.
-        constexpr bool should_stop() const noexcept {
+        inline bool should_stop() const noexcept {
             return m_req_state == RequestedState::STOPPED;
         }
-        constexpr bool may_act() const noexcept {
+        inline bool may_act() const noexcept {
             return m_req_state == RequestedState::RUNNING;
         }
-        constexpr bool should_pause() const noexcept {
+        inline bool should_pause() const noexcept {
             return m_req_state == RequestedState::PAUSED;
         }
+
+        void set_send_state() noexcept;
 
         // The main routine of the thread.
         void main() noexcept;
