@@ -22,9 +22,9 @@
  */
 
 
-#include <core/Communicator.hpp>
-#include <core/Process.hpp>
-#include <core/posix/XConnection.hpp>
+#include "core/Communicator.hpp"
+#include "core/Process.hpp"
+#include "core/posix/XConnection.hpp"
 
 namespace core
 {

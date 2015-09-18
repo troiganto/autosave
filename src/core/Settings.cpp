@@ -21,7 +21,7 @@
  *
  */
 
-#include <core/Settings.hpp>
+#include "core/Settings.hpp"
 
 #include <algorithm>
 #include <utility>

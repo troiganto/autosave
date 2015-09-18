@@ -22,8 +22,8 @@
  */
 
 
-#include <core/Process.hpp>
-#include <core/posix/POpenHelper.hpp>
+#include "core/Process.hpp"
+#include "core/posix/POpenHelper.hpp"
 
 #include <string>
 #include <stdexcept>
