@@ -21,31 +21,28 @@
  *
  */
 
-#include <autosave.hpp>
-#include <core/Communicator.hpp>
+#include "autosave.hpp"
+#include "core/Thread.hpp"
+#include "core/Settings.hpp"
 
 #include <iostream>
 #include <chrono>
-#include <thread>
 
 int main()
 {
     using namespace std;
 
-    std::string firefox("/usr/lib64/firefox/firefox");
-    core::Communicator com;
-
-    while (true) {
-        this_thread::sleep_for(chrono::seconds(1));
-        core::Process proc = com.get_active_process();
-        //~ if (com.get_active_process().started_by(firefox)) {
-            //~ cout << "\u2713";
-        //~ }
-        //~ else {
-            //~ cout << "\u2717";
-        //~ }
-        cout.flush();
+    string input;
+    core::Settings settings;
+    settings.set_interval(std::chrono::seconds(30));
+    cout << "Before Thread started" << endl;
+    {
+        core::Thread thread(settings);
+        thread.start();
+        cout << "After Thread started" << endl;
+        getline(cin, input);
     }
-
+    cout << "After Thread stopped" << endl;
+    cout << "\"" << input << "\"" << endl;
     return 0;
 }
