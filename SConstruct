@@ -12,7 +12,7 @@ default_env = Environment(
 
 if not default_env.GetOption('clean'):
     conf = Configure(default_env)
-    for libname in ["xcb", "xcb-keysyms", "xcb-xtest"]:
+    for libname in ["pthread", "xcb", "xcb-keysyms", "xcb-xtest"]:
         if not conf.CheckLib(libname):
             print "Did not find lib{}, exiting".format(libname)
             Exit(1)
