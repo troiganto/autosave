@@ -3,6 +3,8 @@
 #include <iostream>
 #include <utility>
 #include <string>
+#include <thread>
+#include <system_error>
 #include "core/ThreadSafe.hpp"
 
 using namespace bandit;
@@ -101,7 +103,7 @@ go_bandit([](){
         });
     });
 
-    describe("The core::ThreadSafe", [](){
+    describe("The core::ThreadSafe::Pipe", [](){
 
         auto check_mock = []( const Mock& mock, bool exp_defc, bool exp_copc
                             , bool exp_movc, bool exp_copa, bool exp_mova
@@ -134,41 +136,128 @@ go_bandit([](){
 
         describe("constructor", [&](){
 
+            using core::ThreadSafe::Pipe;
+
             it("copies lvalue arguments", [&](){
                 Mock mock;
-                core::ThreadSafe<Mock> ts(mock);
-                check_mock(ts.get(), false, true, false, false, false);
+                Pipe<Mock> pipe(mock);
+                check_mock(pipe.get(), false, true, false, false, false);
             });
 
             it("moves rvalue arguments", [&](){
-                core::ThreadSafe<Mock> ts {Mock()};
-                check_mock(ts.get(), false, false, true, false, false);
+                Pipe<Mock> pipe {Mock()};
+                check_mock(pipe.get(), false, false, true, false, false);
             });
 
         });
 
         describe("setter", [&](){
 
+            using core::ThreadSafe::Pipe;
+
             it("copy-assigns lvalues arguments", [&](){
-                core::ThreadSafe<Mock> ts {Mock()};
+                Pipe<Mock> pipe {Mock()};
                 Mock mock;
-                ts.set(mock);
-                check_mock(ts.get(), false, false, true, true, false);
+                pipe.set(mock);
+                check_mock(pipe.get(), false, false, true, true, false);
             });
 
             it("move-assigns rvalue arguments", [&](){
                 Mock mock;
-                core::ThreadSafe<Mock> ts(mock);
-                ts.set(Mock());
-                check_mock(ts.get(), false, true, false, false, true);
+                Pipe<Mock> pipe(mock);
+                pipe.set(Mock());
+                check_mock(pipe.get(), false, true, false, false, true);
             });
 
-            it("allows inter-thread communication", [&](){
-                using namespace std::literals;
-                core::ThreadSafe<int> ts(0);
-                const core::ThreadSafe<int>& const_ts = ts;
-                std::unique_lock<std::mutex> lock(ts.m_mutex);
-                const_ts.m_cv.wait_for(lock, 1s);
+        });
+
+        describe("class", [&](){
+
+            using namespace core::ThreadSafe;
+            using namespace std::literals;
+
+            it("may be waited for", [&](){
+                Pipe<int> pipe(0);
+                auto lock = pipe.get_lock();
+                pipe.cv.wait_for(lock, 100ms);
+            });
+
+            it("allows threads to receive information", [&](){
+                auto thread_func = [](Reader<int> reader, int& output)
+                {
+                    // Wait until the reader gives a non-zero value.
+                    auto lock = reader.get_lock();
+                    reader.cv.wait(lock, [&](){ return reader.get() != 0; });
+                    // Then set output to that value.
+                    output = reader.get();
+                };
+                // Create a pipe to communicate with the thread.
+                Pipe<int> pipe(0);
+                int actual = 0;
+                int expected = 42;
+                // Start the thread, hand it a pipe reader.
+                std::thread thread(thread_func, pipe.reader(), std::ref(actual));
+                std::this_thread::sleep_for(100ms);
+                pipe.set(expected);
+                thread.join();
+                AssertThat(actual, Equals(expected));
+            });
+
+            it("allows threads to send information", [&](){
+                auto thread_func = [](Pipe<int>& pipe)
+                {
+                    pipe.set(42);
+                };
+                Pipe<int> pipe(0);
+                // Create reader, lock the pipe till we're waiting
+                auto reader = pipe.reader();
+                auto lock = reader.get_lock();
+                // Start the thread.
+                std::thread thread(thread_func, std::ref(pipe));
+                std::this_thread::sleep_for(100ms);
+                AssertThat(thread.joinable(), IsTrue());
+                // *Now* the thread may continue.
+                reader.cv.wait(lock, [&](){ return reader.get() != 0; });
+                thread.join();
+                AssertThat(reader.get(), Equals(42));
+            });
+
+            it("allows threads to communicate with each other", [&](){
+                using namespace std;
+                auto generate_data = [](Pipe<int>& data, Reader<bool> ready)
+                {
+                    for (int i=1; i<=10; ++i) {
+                        data.set(i);
+                        auto lock = ready.get_lock();
+                        ready.cv.wait(lock, [&](){ return ready.get(); });
+                    }
+                };
+                auto process_data = [](Reader<int> data, Pipe<bool>& ready, int& output)
+                {
+                    int sum = 0;
+                    auto lock = data.get_lock();
+                    int cur_val = 0;
+                    while (true) {
+                        ready.set(true);
+                        bool timeout = !data.cv.wait_for(
+                            lock, 100ms, [&](){ return data.get() != cur_val; });
+                        ready.set(false);
+                        if (timeout) {
+                            break;
+                        }
+                        cur_val = data.get();
+                        sum += cur_val;
+                    }
+                    output = sum;
+                };
+                Pipe<int> data_pipe(0);
+                Pipe<bool> ready_pipe(false);
+                int output = 0;
+                thread generator(generate_data, ref(data_pipe), ready_pipe.reader());
+                thread processor(process_data, data_pipe.reader(), ref(ready_pipe), ref(output));
+                generator.join();
+                processor.join();
+                AssertThat(output, Equals(55));
             });
 
         });

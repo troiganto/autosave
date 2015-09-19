@@ -37,36 +37,97 @@
 
 namespace core
 {
-    template<typename var_type>
-    class ThreadSafe
+    namespace ThreadSafe
     {
-    public:
-        // Another template parameter is necessary to invoke the
-        // rules necessary for perfect forwarding.
-        template<typename arg_type>
-        ThreadSafe(arg_type&& value) noexcept(noexcept(var_type(std::forward<arg_type>(value))))
-            : m_value(std::forward<arg_type>(value))
-        {}
+        template<typename var_type>
+        class Reader;
 
-        template<typename arg_type>
-        inline void set(arg_type&& value) {
-            set_no_notify(std::forward<arg_type>(value));
-            m_cv.notify_all();
-        }
+        template<typename var_type>
+        class Pipe
+        {
+        public:
+            // Template parameter `arg_type` is necessary to invoke the
+            // rules necessary for perfect forwarding.
 
-        template<typename arg_type>
-        inline void set_no_notify(arg_type&& value) {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            m_value = std::forward<arg_type>(value);
-        }
+            template<typename arg_type>
+            Pipe(arg_type&& value)
+                noexcept(noexcept(var_type(std::forward<arg_type>(value))))
+                : m_value(std::forward<arg_type>(value))
+            {}
+            Pipe(const Pipe<var_type>& rhs) = delete;
+            Pipe(Pipe<var_type>&& rhs) = delete;
+            Pipe& operator =(const Pipe<var_type>& rhs) = delete;
+            Pipe& operator =(Pipe<var_type>&& rhs) = delete;
 
-        inline const var_type& get() const noexcept {
-            return m_value;
-        }
+            template<typename arg_type>
+            inline void set(arg_type&& value) {
+                set_no_notify(std::forward<arg_type>(value));
+                cv.notify_all();
+            }
 
-    public:
-        var_type m_value;
-        std::mutex m_mutex;
-        std::condition_variable m_cv;
-    };
+            template<typename arg_type>
+            inline void set_no_notify(arg_type&& value) {
+                using namespace std;
+                unique_lock<recursive_mutex> lock(m_mutex);
+                m_value = forward<arg_type>(value);
+            }
+
+            inline const var_type& get() const noexcept {
+                return m_value;
+            }
+
+            inline std::unique_lock<std::recursive_mutex> get_lock() {
+                using namespace std;
+                return unique_lock<recursive_mutex>(m_mutex);
+            }
+
+            inline Reader<var_type> reader() noexcept {
+                return Reader<var_type>(*this);
+            }
+
+        public:
+            std::condition_variable_any cv;
+
+        private:
+            var_type m_value;
+            std::recursive_mutex m_mutex;
+        };
+
+        template<typename var_type>
+        class Reader
+        {
+        public:
+            Reader(Pipe<var_type>& parent) noexcept
+                : cv(parent.cv)
+                , m_parent(parent)
+            {}
+
+            Reader(const Reader<var_type>& rhs) noexcept
+                : cv(rhs.cv)
+                , m_parent(rhs.m_parent)
+            {}
+
+            Reader(Reader<var_type>&& rhs) noexcept
+                : cv(rhs.cv)
+                , m_parent(rhs.m_parent)
+            {}
+
+            Reader& operator =(const Reader<var_type>& rhs) = delete;
+            Reader& operator =(Reader<var_type>&& rhs) noexcept = delete;
+
+            inline const var_type& get() const noexcept {
+                return m_parent.get();
+            }
+
+            inline std::unique_lock<std::recursive_mutex> get_lock() {
+                return m_parent.get_lock();
+            }
+
+        public:
+            std::condition_variable_any& cv;
+
+        private:
+            Pipe<var_type>& m_parent;
+        };
+    }
 }
