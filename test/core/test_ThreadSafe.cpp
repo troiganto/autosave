@@ -222,42 +222,71 @@ go_bandit([](){
                 AssertThat(reader.get(), Equals(42));
             });
 
-            it("allows threads to communicate with each other", [&](){
+            it("may be used two at once", [&](){
                 using namespace std;
-                auto generate_data = [](Pipe<int>& data, Reader<bool> ready)
+                auto send_first = [](Pipe<bool>& send, Reader<bool> listen)
+                {
+                    send.set(true);
+                    auto lock = listen.get_lock();
+                    listen.cv.wait(lock, [&](){ return listen.get(); });
+                };
+                auto listen_first = [](Pipe<bool>& send, Reader<bool> listen)
+                {
+                    auto lock = listen.get_lock();
+                    listen.cv.wait(lock, [&](){ return listen.get(); });
+                    send.set(true);
+                };
+                Pipe<bool> back(false), forth(false);
+                thread one(send_first, ref(back), forth.reader());
+                thread two(listen_first, ref(forth), back.reader());
+                one.join();
+                two.join();
+                AssertThat(back.get(), Is().True().And().EqualTo(forth.get()));
+            });
+
+            it("allow bi-directional communication", [&](){
+                using namespace std;
+                auto generate_data = [](Pipe<int>& data, Pipe<bool>& ready)
                 {
                     for (int i=1; i<=10; ++i) {
                         data.set(i);
+                        // Flag readiness and wait for unflagging.
                         auto lock = ready.get_lock();
-                        ready.cv.wait(lock, [&](){ return ready.get(); });
+                        ready.set(true);
+                        ready.cv.wait(lock, [&](){ return !ready.get(); });
                     }
+                    // Signal end of data.
+                    data.set(-1);
+                    ready.set(true);
                 };
                 auto process_data = [](Reader<int> data, Pipe<bool>& ready, int& output)
                 {
                     int sum = 0;
-                    auto lock = data.get_lock();
                     int cur_val = 0;
-                    while (true) {
-                        ready.set(true);
-                        bool timeout = !data.cv.wait_for(
-                            lock, 100ms, [&](){ return data.get() != cur_val; });
-                        ready.set(false);
-                        if (timeout) {
-                            break;
-                        }
+                    do {
+                        auto ready_lock = ready.get_lock();
+                        ready.cv.wait(ready_lock, [&](){ return ready.get(); });
+                        // Handle data.
                         cur_val = data.get();
-                        sum += cur_val;
-                    }
+                        if (cur_val >= 0) {
+                            sum += cur_val;
+                        }
+                        // Unflag to get the next batch of data.
+                        ready.set(false);
+                    } while (cur_val >= 0);
+                    // Write final result to where the main thread can read it.
                     output = sum;
                 };
                 Pipe<int> data_pipe(0);
                 Pipe<bool> ready_pipe(false);
                 int output = 0;
-                thread generator(generate_data, ref(data_pipe), ready_pipe.reader());
+                thread generator(generate_data, ref(data_pipe), ref(ready_pipe));
                 thread processor(process_data, data_pipe.reader(), ref(ready_pipe), ref(output));
                 generator.join();
                 processor.join();
                 AssertThat(output, Equals(55));
+                AssertThat(data_pipe.get(), Equals(-1));
+                AssertThat(ready_pipe.get(), IsFalse());
             });
 
         });
