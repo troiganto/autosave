@@ -185,7 +185,7 @@ namespace core { namespace X11
             // This might happen.
             const int error_code = error->error_code;
             free(error);
-            throw Error(error_code, "core::XConnection::get_parent");
+            throw Error(error_code, "xcb_query_tree");
         }
     }
 
@@ -342,7 +342,7 @@ namespace core { namespace X11
             }
             else {
                 // Unexpected error, fail loudly.
-                throw Error(error_code, "core::XConnection::window_exists");
+                throw Error(error_code, __func__);
             }
         }
     }
@@ -385,7 +385,7 @@ namespace core { namespace X11
                 // An error occured, abort.
                 const unsigned int error_code = error->error_code;
                 free(error);
-                throw Error(error_code, "core::XConnection::get_property");
+                throw Error(error_code, "xcb_get_property");
             }
             else if (reply->bytes_after > 0) {
                 // We didn't get everything, try again.
