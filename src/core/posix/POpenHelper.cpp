@@ -24,11 +24,16 @@
 
 #include "core/posix/POpenHelper.hpp"
 
+#include <system_error>
 #include <stdexcept>
+#include <cerrno>
+#include <cstdio>
 
 namespace core
 {
-    POpenHelper::POpenHelper() noexcept : m_out(0) {}
+    POpenHelper::POpenHelper() noexcept
+        : m_out(nullptr)
+    {}
 
     POpenHelper::POpenHelper(const std::string& cmdline)
         : POpenHelper()
@@ -43,27 +48,31 @@ namespace core
 
     void POpenHelper::open(const std::string& cmdline)
     {
-        if (m_out != nullptr) {
-            close();
-        }
+        close();
         m_out = popen(cmdline.c_str(), "r");
         if (m_out == nullptr) {
-            throw std::runtime_error("popen call to\"" + cmdline + "\" failed");
+            std::error_code errcode(errno, std::system_category());
+            throw std::system_error(errcode, cmdline);
         }
     }
 
     std::string POpenHelper::get_output()
     {
-        std::string output;
-        output.reserve(250);
-        char c = 0;
-        while ( (c = std::fgetc(m_out)) != EOF ) {
-            output.push_back(c);
+        if (m_out == nullptr) {
+            throw std::invalid_argument("POpenHelper uninitialized");
         }
-        return output;
+        else {
+            std::string output;
+            output.reserve(250);
+            char c = 0;
+            while ( (c = std::fgetc(m_out)) != EOF ) {
+                output.push_back(c);
+            }
+            return output;
+        }
     }
 
-    int POpenHelper::close()
+    int POpenHelper::close() noexcept
     {
         if (m_out != nullptr) {
             const int result = pclose(m_out);
@@ -72,22 +81,6 @@ namespace core
         }
         else {
             return 0;
-        }
-    }
-
-    std::string POpenHelper::check_output(const std::string& cmdline)
-    {
-        POpenHelper helper(cmdline);
-        std::string output = helper.get_output();
-        const int exit_code = helper.close();
-        if (exit_code != 0) {
-            throw std::runtime_error(
-                "popen call \"" + cmdline + "\" failed with exit code " +
-                std::to_string(exit_code)
-                );
-        }
-        else {
-            return output;
         }
     }
 }

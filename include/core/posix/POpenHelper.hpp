@@ -1,8 +1,6 @@
 /*
  * POpenHelper.hpp
  *
- * A small C++ wrapper around the ugly C-ness of popen.
- *
  * Copyright 2015 Nico <nico@FARD>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,27 +24,66 @@
 #pragma once
 
 #include <string>
-#include <cstdio>
 
 // TODO: Add killing capability (http://stackoverflow.com/questions/548063)
 
 
 namespace core
 {
+    /*!A wrapper class around the POSIX functions `popen`/`pclose`.
+     *
+     * This class wraps calls to `popen` and `pclose` in an RAII manner.
+     * The output of the child may be retrieved.
+     */
     class POpenHelper
     {
-        public:
-            POpenHelper() noexcept;
-            POpenHelper(const std::string& cmdline);
-            ~POpenHelper();
+    public:
+        /*!Create an instance not bound to any process.
+         */
+        POpenHelper() noexcept;
 
-            std::string get_output();
-            void open(const std::string& cmdline);
-            int close();
+        /*!Constructs an instance and immediately calls open().
+         *
+         * \sa open()
+         */
+        POpenHelper(const std::string& cmdline);
 
-            static std::string check_output(const std::string& cmdline);
+        /*!Calls close() before destroying the instance.
+         *
+         * \sa close()
+         */
+        ~POpenHelper();
 
-        private:
-            std::FILE* m_out;
+        /*!Start a new process and associate its `stdout` with this object.
+         *
+         * \param cmdline The command line to execute. It is passed
+         *                directly to \c popen().
+         * \throws std::system_error if \c popen() fails. Its error code
+         *         is the \c errno set by \c popen().
+         */
+        void open(const std::string& cmdline);
+
+        /*!Wait for the associated process to finish and return exit code.
+         *
+         * If there is a child process associated with this object, wait
+         * until it has exited and return its exit code.
+         * If no process is associated with this object, do nothing and
+         * return 0.
+         *
+         * \returns The exit code of the associated process or 0 if no
+         *          process is associated with this object.
+         */
+        int close() noexcept;
+
+        /*!Read the output of the associated process and return it as string.
+         *
+         * \returns The output of the child process.
+         * \throws std::invalid_argument if no process is associated with
+         *         this object.
+         */
+        std::string get_output();
+
+    private:
+        std::FILE* m_out;
     };
 }
