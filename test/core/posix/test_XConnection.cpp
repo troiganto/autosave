@@ -54,6 +54,13 @@ go_bandit([](){
             AssertThat(x.get_parent(focus), Equals(active));
         });
 
+        it("throws when asked for the parent of an invalid window", [&](){
+            X11::XConnection x;
+            AssertThrows(core::X11::Error, x.get_parent(0xdeadbeef));
+            AssertThat(LastException<X11::Error>().get_error_code(),
+                       Equals(3 /*XCB_WINDOW*/));
+        });
+
         it("throws an exception when asked to send an invalid key", [&](){
             X11::XConnection x;
             constexpr unsigned int XK_VOID_SYMBOL = 0xffffff;
@@ -61,7 +68,7 @@ go_bandit([](){
                 x.send_key_combo(KeyCombo(XK_VOID_SYMBOL));
             }());
             AssertThat(LastException<X11::Error>().get_error_code(),
-                       Equals(XK_VOID_SYMBOL))
+                       Equals(XK_VOID_SYMBOL));
         });
 
         xdescribe("when interacting with gedit", [&](){
