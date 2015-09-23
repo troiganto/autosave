@@ -37,7 +37,7 @@ extern "C" {
 
 namespace core { namespace X11
 {
-    // Forward declaration
+    //! \brief Implementation of XConnection.
     struct XConnection::Impl
     {
     public:
@@ -47,7 +47,6 @@ namespace core { namespace X11
         xcb_window_t get_input_focus() const noexcept;
         xcb_window_t get_active_window() const;
         unsigned long get_pid_window(xcb_window_t window) const;
-        // Delay is measured in microseconds.
         void send_key_combo(const KeyCombo& combo, xcb_window_t window);
         std::string get_window_title(xcb_window_t window) const;
         bool window_exists(xcb_window_t window) const;
@@ -126,6 +125,7 @@ namespace core { namespace X11
     XConnection::XConnection(const char* display)
         : pimpl(new Impl(display))
     {}
+    //! \sa XConnection::XConnection()
     XConnection::Impl::Impl(const char* display)
         : m_c(xcb_connect(display, nullptr))
         , m_syms(nullptr)
@@ -161,6 +161,7 @@ namespace core { namespace X11
     }
 
     XConnection::~XConnection() {}
+    //! \sa XConnection::~XConnection()
     XConnection::Impl::~Impl()
     {
         xcb_key_symbols_free(m_syms);
@@ -171,6 +172,7 @@ namespace core { namespace X11
     {
         return pimpl->get_parent(child);
     }
+    //! \sa XConnection::get_parent()
     xcb_window_t XConnection::Impl::get_parent(xcb_window_t child) const
     {
         xcb_query_tree_cookie_t cookie = xcb_query_tree(m_c, child);
@@ -193,6 +195,7 @@ namespace core { namespace X11
     {
         return pimpl->get_input_focus();
     }
+    //! \sa XConnection::get_input_focus()
     xcb_window_t XConnection::Impl::get_input_focus() const noexcept
     {
         // We use the unchecked version here because the
@@ -216,6 +219,7 @@ namespace core { namespace X11
     {
         return pimpl->get_active_window();
     }
+    //! \sa XConnection::get_active_window()
     xcb_window_t XConnection::Impl::get_active_window() const
     {
         auto windows = get_root_windows();
@@ -225,7 +229,7 @@ namespace core { namespace X11
             return get_active_window_by_root(windows[0]);
         }
         else if (windows.size() == 0) {
-            return XCB_WINDOW_NONE;
+            throw Error(0, "get_active_window");
         }
         else {
             // If we got several screens, first get the active window on
@@ -235,8 +239,13 @@ namespace core { namespace X11
                 window = get_active_window_by_root(window);
             }
             // Find the one active window that is ancestor of the input focus.
-            auto focus = get_input_focus();
-            return get_any_ancestor(windows, focus);
+            auto active_window = get_any_ancestor(windows, get_input_focus());
+            if (active_window == XCB_WINDOW_NONE) {
+                throw Error(0, "get_active_window");
+            }
+            else {
+                return active_window;
+            }
         }
     }
 
@@ -244,6 +253,7 @@ namespace core { namespace X11
     {
         return pimpl->get_pid_window(window);
     }
+    //! \sa XConnection::get_pid_window()
     unsigned long XConnection::Impl::get_pid_window(xcb_window_t window) const
     {
         auto reply = get_property( window
@@ -257,15 +267,19 @@ namespace core { namespace X11
         return *static_cast<const unsigned long*>(value);
     }
 
-    void XConnection::send_key_combo(const core::KeyCombo& combo)
-    {
-        pimpl->send_key_combo(combo, XCB_SEND_EVENT_DEST_ITEM_FOCUS);
-    }
     void XConnection::send_key_combo(const core::KeyCombo& combo, Window window)
     {
         pimpl->send_key_combo(combo, window);
     }
-    void XConnection::Impl::send_key_combo(const core::KeyCombo& combo, xcb_window_t window)
+    void XConnection::send_key_combo(const core::KeyCombo& combo)
+    {
+        pimpl->send_key_combo(combo, XCB_SEND_EVENT_DEST_ITEM_FOCUS);
+    }
+    //! \sa XConnection::send_key_combo()
+    void XConnection::Impl::send_key_combo
+        (const core::KeyCombo& combo
+        , xcb_window_t window
+        )
     {
         // For now, assume that KeyCombo's key code is an X11 keysym.
         auto keycode = get_key_code(combo.get_key_code());
@@ -296,6 +310,7 @@ namespace core { namespace X11
     {
         return pimpl->get_window_title(window);
     }
+    //! \sa XConnection::get_window_title()
     std::string XConnection::Impl::get_window_title(xcb_window_t window) const
     {
         // Initial guess of ~160 characters for a window title
@@ -318,6 +333,7 @@ namespace core { namespace X11
     {
         return pimpl->window_exists(window);
     }
+    //! \sa XConnection::window_exists()
     bool XConnection::Impl::window_exists(xcb_window_t window) const
     {
         // Get a property that definitely exists.
@@ -349,6 +365,17 @@ namespace core { namespace X11
 
     // Implementation-only member functions
 
+    /*!Wrapper around `xcb_intern_atom_reply`.
+     *
+     * Wraps error and memory handling necessary when requesting the reply
+     * to a request.
+     *
+     * \param cookie A cookie returned by a call to `xcb_intern_atom()`.
+     *
+     * \returns The atom previously queried for.
+     *
+     * \throws X11::Error if any X11 error occurs.
+     */
     xcb_atom_t XConnection::Impl::unwrap_atom(xcb_intern_atom_cookie_t cookie) const
     {
         xcb_generic_error_t* error;
@@ -366,12 +393,29 @@ namespace core { namespace X11
         }
     }
 
-    std::unique_ptr<xcb_get_property_reply_t>
-    XConnection::Impl::get_property( xcb_window_t window
-                                   , xcb_atom_t prop
-                                   , xcb_atom_t prop_type
-                                   , uint32_t prop_len
-                                   ) const
+    /*!Wrapper around `xcb_get_property`.
+     *
+     * Wraps requesting a property, waiting for the reply, and handling it.
+     *
+     * \param windw     The window being queried for a property.
+     * \param prop      The atom describing the property that is asked for.
+     * \param prop_type The atom describing the type of the requested property.
+     * \param prop_len  A hint for the expected length of the property in
+     *                  words. A word usually equals 4 bytes.
+     *                  If the expected length is too small, another request
+     *                  has to be sent, so it's usually reasonable to give
+     *                  a generous estimate.
+     *
+     * \returns Unique pointer to the reply structure.
+     *
+     * \throws X11::Error if any X11 error occurs.
+     */
+    std::unique_ptr<xcb_get_property_reply_t> XConnection::Impl::get_property
+        ( xcb_window_t window
+        , xcb_atom_t prop
+        , xcb_atom_t prop_type
+        , uint32_t prop_len
+        ) const
     {
         // Declarations.
         xcb_get_property_cookie_t cookie;
@@ -396,10 +440,24 @@ namespace core { namespace X11
                 break;
             }
         }
-        // Implicit conversion to an std::unique_ptr.
+        // Conversion to an std::unique_ptr.
         return std::unique_ptr<xcb_get_property_reply_t>(reply);
     }
 
+    /*!Look up and return the key code corresponding to a key symbol.
+     *
+     * Because looking up a symbol might be slow, this function memoizes
+     * the last symbol that has been looked up.
+     * Thus, looking up the same symbol again and again is very efficient.
+     *
+     * \param symbol the key symbol to be looked up.
+     *
+     * \returns The first matching key code or `XCB_NO_SYMBOL` if there is
+     *          none.
+     *
+     * \throws X11::Error with its error code set to \a symbol if the
+     *         look-up fails.
+     */
     xcb_keycode_t XConnection::Impl::get_key_code(xcb_keysym_t symbol) const
     {
         // Memoization logic.
@@ -424,14 +482,34 @@ namespace core { namespace X11
         }
     }
 
-    void XConnection::Impl::send_fake_input( xcb_window_t window
-                                           , uint8_t type
-                                           , xcb_keycode_t key_code
-                                           )
+    /*!Wrapper around `xcb_test_fake_input`.
+     *
+     * Send fake keyboard events via the XTest library.
+     * If any error occurs, this function fails silently.
+     *
+     * \param window The window to receive the events.
+     * \param type Either `XCB_KEY_PRESS` or `XCB_KEY_RELEASE`.
+     * \param key_code The code of the key which is being pressed or released.
+     *
+     */
+    void XConnection::Impl::send_fake_input
+        ( xcb_window_t window
+        , uint8_t type
+        , xcb_keycode_t key_code
+        )
     {
         xcb_test_fake_input(m_c, type, key_code, XCB_CURRENT_TIME, window, 0, 0, 0);
     }
 
+    /*!Return all root windows of the current display.
+     *
+     * This function iterates over all screens of the display (usually 1)
+     * and returns the root window of each.
+     *
+     * \returns A vector of the root window of each screen of the display.
+     *
+     * \sa XConnection::get_active_window()
+     */
     std::vector<xcb_window_t> XConnection::Impl::get_root_windows() const noexcept
     {
         std::vector<xcb_window_t> roots;
@@ -446,7 +524,24 @@ namespace core { namespace X11
         return roots;
     }
 
-    xcb_window_t XConnection::Impl::get_active_window_by_root(xcb_window_t root) const
+    /*!Return the active window under a given root window.
+     *
+     * This function queries the passed window for `_NET_ACTIVE_WINDOW`
+     * and returns the result.
+     *
+     * \param root A root window.
+     *
+     * \returns The active window according to the `_NET_ACTIVE_WINDOW`
+     *          property.
+     *
+     * \throws X11::Error if the passed window does not have the
+     *         `_NET_ACTIVE_WINDOW` property.
+     *
+     * \sa XConnection::get_active_window()
+     */
+    xcb_window_t XConnection::Impl::get_active_window_by_root
+        (xcb_window_t root
+        ) const
     {
         auto reply = get_property( root
                                  , m_active_win_atom
@@ -459,9 +554,31 @@ namespace core { namespace X11
         return *static_cast<const xcb_window_t*>(value);
     }
 
-    xcb_window_t XConnection::Impl::get_any_ancestor(std::vector<xcb_window_t> candidates
-                                                    , xcb_window_t child
-                                                    ) const
+    /*!Under a list of candidates, return the first that is found to be
+     * an ancestor of \a child.
+     *
+     * This function finds the ancestor of \a child through repeated calls
+     * to get_parent().
+     * This means that if both a window and its child window are elements
+     * of \a candidates, the parent window can never be returned by this
+     * function because the child is always found first.
+     *
+     * \param candidates A vector of candidate windows that may or may not
+     *                   be ancestors of \a child.
+     * \param child      The window whose ancestor is required.
+     *
+     * \returns The most direct ancestor of \a child that is an element
+     *          of \a candidates or `XCB_WINDOW_NONE` if no element of
+     *          \a candidates is an ancestor of \a child.
+     *
+     * \throws X11::Error if any call to get_parent() fails.
+     *
+     * \sa XConnection::get_active_window(), XConnection::get_parent()
+     */
+    xcb_window_t XConnection::Impl::get_any_ancestor
+        ( std::vector<xcb_window_t> candidates
+        , xcb_window_t child
+        ) const
     {
         // Also cover the corner case that child is *in* candidates.
         while (child != XCB_WINDOW_NONE) {

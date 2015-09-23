@@ -128,28 +128,108 @@ namespace core
              */
             Window get_parent(Window child) const;
 
-            /*!Return the current input focus of the display.
+            /*!Return the current input focus.
+             *
+             * Returns the X11 window that currently has the input focus.
              *
              * \warning The input focus may and usually does differ from
              * the active window. See get_active_window() for more details.
              *
-             * \returns The window currently having the input focus.
+             * \returns The currently focused window.
              *
              * \sa get_active_window
              */
             Window get_input_focus() const noexcept;
 
-            /*!Return the active window as specified by `_NET_ACTIVE_WINDOW`.
+            /*!Return the active window.
+             *
+             * Determines the active window through the following algorithm:
+             *
+             * 1. Query each screen of the durrent display for its active
+             *    window by asking for `_NET_ACTIVE_WINDOW`.
+             * 2. If the display only has one screen, return its active window.
+             * 3. Otherwise, return that active window that is an ancestor
+             *    of the window having the input focus.
+             *
+             * \returns The window that is active according to the window
+             *          manager.
+             *
+             * \throws X11::Error if the atom `_NET_ACTIVE_WINDOW` is
+             *         not supported by the window manager.
+             *         In some nonsensical situations (e.g. if the display
+             *         has no screens), an X11::Error with error code 0
+             *         may be thrown.
+             *
+             * \sa get_active_window()
              */
             Window get_active_window() const;
 
+            /*!Return the ID of the process owning the specified window.
+             *
+             * This function uses `_NET_WM_PID` to query the specified
+             * window fow the PID of its owner process.
+             *
+             * \param window The window to be queried.
+             *
+             * \returns the PID of the owner process.
+             *
+             * \throws X11::Error if the window does not have the
+             *         `_NET_WM_PID` property.
+             *
+             */
             unsigned long get_pid_window(Window window) const;
 
-            void send_key_combo(const core::KeyCombo& combo);
+            /*!Send a series of key events to the specified window.
+             *
+             * This function uses \c xcb_test_fake_input() to send key
+             * events.
+             * It fails silently if any error occurs.
+             *
+             * \param combo The KeyCombo object describing the key events
+             *              to be sent. Its \a key_code is expected to be
+             *              an X11 key symbol.
+             * \param window The window to which to send the key events.
+             *               If not specified, defaults to the window
+             *               which has the input focus.
+             *
+             * \throws X11::Error if there is no key code corresponding
+             *         to the symbol in \a combo.
+             *
+             * \sa get_input_focus()
+             */
             void send_key_combo(const core::KeyCombo& combo, Window window);
 
+            /*! \overload
+             */
+            void send_key_combo(const core::KeyCombo& combo);
+
+            /*!Return the title of the specified window.
+             *
+             * This function uses `_NET_WM_NAME` to query the specified
+             * window fow its title.
+             *
+             * \param window The window to be queried.
+             *
+             * \returns The window title, encoded in UTF-8.
+             *
+             * \throws X11::Error if the window does not have the
+             *         `_NET_WM_NAME` property.
+             *
+             */
             std::string get_window_title(Window window) const;
 
+            /*!Return \c true if the specified window is valid.
+             *
+             * This function queries the specified window for the atom
+             * `WM_NAME` and checks for an `XCB_WINDOW` error,
+             *
+             * \param window The window to be checked.
+             *
+             * \returns `true` if the window exists, `false` otherwise.
+             *
+             * \throws X11::Error if querying for `WM_NAME` gives any
+             *         error other than `XCB_WINDOW`.
+             */
             bool window_exists(Window window) const;
 
         private:
