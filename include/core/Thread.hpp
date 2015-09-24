@@ -37,6 +37,11 @@
 #include <mutex>
 #include <condition_variable>
 
+/*!The namespace of the Autosave core library.
+ *
+ * This namespace contains all components necessary for the bare running
+ * of Autosave.
+ */
 namespace core
 {
     class Thread
