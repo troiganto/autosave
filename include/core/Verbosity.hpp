@@ -29,21 +29,44 @@
 
 namespace core
 {
-    enum Verbosity{ QUIET
-                  , COUNTDOWN_ICONS
-                  , ALERT_START
-                  , ALERT_FIVE_SEC
-                  , MINIMUM = QUIET
-                  , MAXIMUM = ALERT_FIVE_SEC
+    /*!Enum of allowed levels of verbosity for Autosave.
+     */
+    enum Verbosity{ QUIET                       //!< Be as quiet as possible.
+                  , COUNTDOWN_ICONS             //!< Animate the sys tray icon.
+                  , ALERT_START                 //!< Notify the user when starting the background thread..
+                  , ALERT_FIVE_SEC              //!< Notify the user 5 seconds before a key event is sent.
+                  , MINIMUM = QUIET             //!< Minimum verbosity.
+                  , MAXIMUM = ALERT_FIVE_SEC    //!< Maximum verbosity.
                   };
 
-    constexpr Verbosity to_verbosity(int i)
+    /*!Convert an integer to a verbosity level.
+     *
+     * If \a i is out of range, it is set to the nearest allowed value.
+     *
+     * \param i The integer to be converted.
+     *
+     * \returns The corresponding verbosity level. If \a i is out of range,
+     *          either Verbosity::MINIMUM or Verbosity::MAXIMUM, depending
+     *          on whether \a i is too high or too low.
+     */
+    constexpr Verbosity to_verbosity(int i) noexcept
     {
         return (i < static_cast<int>(Verbosity::MINIMUM)) ? Verbosity::MINIMUM :
                (i > static_cast<int>(Verbosity::MAXIMUM)) ? Verbosity::MAXIMUM :
                static_cast<Verbosity>(i);
     }
 
+    /*!Convert an integer to a verbosity level.
+     *
+     * If \a i is out of range, an exception is thrown.
+     *
+     * \param i The integer to be converted.
+     *
+     * \returns The corresponding verbosity level.
+     *
+     * \throws std::out_of_range if \a i is below Verbosity::MINIMUM or
+     *         above Verbosity::MAXIMUM.
+     */
     constexpr Verbosity to_verbosity_strict(int i)
     {
         return (i < static_cast<int>(Verbosity::MINIMUM) ||
@@ -52,7 +75,13 @@ namespace core
             static_cast<Verbosity>(i);
     }
 
-    constexpr int from_verbosity(Verbosity v)
+    /*!Convert a verbosity level to the corresponding integer.
+     *
+     * \param v The verbosity level to be converted.
+     *
+     * \returns The corresponding integer.
+     */
+    constexpr int from_verbosity(Verbosity v) noexcept
     {
         return static_cast<int>(v);
     }
