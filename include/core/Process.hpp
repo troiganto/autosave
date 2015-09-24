@@ -31,25 +31,44 @@
 
 namespace core
 {
+    //! Platform-independent wrapper class around representations of processes.
     class Process
     {
     public:
-        Process();
+
+        //! Convert a platform-dependent integer into a Process object.
         explicit Process(unsigned long pid);
+
+        //! Copy constructor.
         Process(const Process& rhs);
+
+        //! Copy assignment.
         Process& operator =(const Process& rhs);
-        Process(Process&& rhs);
-        Process& operator =(Process&& rhs);
+
+        //! Move constructor.
+        Process(Process&& rhs) noexcept;
+
+        //! Move assignment.
+        Process& operator =(Process&& rhs) noexcept;
+
+        //! Destructor.
         ~Process();
 
-        // What the string application actually is, is platform-dependent.
-        // It could be a command line, a path to an executable, or
-        // an UUID. We just don't know.
+        /*!Check if the Process has been started by the specified \a application.
+         *
+         * \param application Path to an executable that is to be checked against.
+         *
+         * \returns `true` if this Process has been started from the specified
+         *          \a application, `false` otherwise.
+         *
+         * \throws std::exception if any error occurs. The exception is
+         *         platform-dependent.
+         */
         bool started_by(const std::string& application) const;
 
     private:
         // PIMPL idiom.
         struct Impl;
-        std::unique_ptr<Impl> pimpl;
+        std::unique_ptr<Impl> pimpl; //!< This class uses the PIMPL idiom.
     };
 }

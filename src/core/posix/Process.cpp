@@ -26,28 +26,33 @@
 #include "core/posix/POpenHelper.hpp"
 
 #include <string>
+#include <fstream>
 #include <stdexcept>
 
 namespace core
 {
     struct Process::Impl
     {
-        Impl() = default;
-        Impl(unsigned long pid) : m_pid(pid) {}
-
+        Impl(unsigned long pid) noexcept : m_pid(pid) {}
         bool started_by(const std::string& application) const;
 
     private:
+        /*!Execute a command line and get
+         */
         std::string run_application(const std::string& cmdline) const;
-
-        unsigned long m_pid;
+        unsigned long m_pid; //!< The process ID of this Process.
     };
 
-    // Normal constructors.
-    Process::Process() : pimpl(new Impl) {}
-    Process::Process(unsigned long pid) : pimpl(new Impl(pid)) {}
-    // Copy and move constructors and destructor.
-    Process::Process(const Process& rhs) : pimpl(new Impl(*rhs.pimpl)) {}
+
+
+    Process::Process(unsigned long pid)
+        : pimpl(std::make_unique<Impl>(pid))
+    {}
+
+    Process::Process(const Process& rhs)
+        : pimpl(std::make_unique<Impl>(*rhs.pimpl))
+    {}
+
     Process& Process::operator =(const Process& rhs)
     {
         if (&rhs != this) {
@@ -55,53 +60,44 @@ namespace core
         }
         return *this;
     }
-    Process::Process(Process&&) = default;
-    Process& Process::operator =(Process&&) = default;
-    Process::~Process() = default;
+    Process::Process(Process&&) noexcept = default;
 
-    // Forwarding.
+    Process& Process::operator =(Process&&) noexcept = default;
+
+    Process::~Process() = default;
 
     bool Process::started_by(const std::string& application) const
     {
         return pimpl->started_by(application);
     }
-
     // A process has been started by an application if we look up
     // its original command line using PS and the first component
     // equals `application`.
     bool Process::Impl::started_by(const std::string& application) const
     {
         #ifdef TEST_PROCESS_BY_EXE
-            std::string my_exe = run_application(
-                "readlink /proc/"+std::to_string(m_pid)+"/exe"
-                );
+            POpenHelper poh("readlink /proc/"+std::to_string(m_pid)+"/exe");
+            const std::string my_exe = poh.get_output();
             return application == my_exe;
         #else
             #ifdef TEST_PROCESS_BY_CMDLINE
-                // get cmdline from /proc
-                // ifstream /proc/pid/cmdline
+                std::ifstream cmdline("/proc/"+std::to_string(m_pid)+"/cmdline");
+                std::string my_application;
+                std::getline(cmdline, my_application, '\0');
+                return application == my_application;
             #else
                 #ifdef TEST_PROCESS_BY_PIDOF
-                    // get pid from pidof
-                    // pidof name
+                    POpenHelper poh("pidof \""+application+"\"");
+                    const std::string other_pids = poh.get_output();
+                    const size_t pos = other_pids.find(std::to_string(m_pid));
+                    return pos != std::string::npos;
                 #else
-                    // get name from ps
-                    // ps -p pid -o comm=
+                    POpenHelper poh("ps -p "+std::to_string(m_pid)+" -o comm=");
+                    std::string my_app_prefix = poh.get_output();
+                    return application.find(my_app_prefix) == 0;
                 #endif
             #endif
         #endif
-    }
-
-    std::string Process::Impl::run_application(const std::string& cmdline) const
-    {
-        POpenHelper poh;
-        try {
-            poh.open(cmdline);
-        }
-        catch (const std::runtime_error&) {
-            return "";
-        }
-        return poh.get_output();
     }
 }
 
