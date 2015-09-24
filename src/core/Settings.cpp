@@ -28,8 +28,11 @@
 
 namespace core
 {
+    // Necessary because uhhh, I don't even know.
+    constexpr std::chrono::seconds Settings::min_interval;
+    constexpr std::chrono::seconds Settings::max_interval;
 
-    Settings::Settings()
+    Settings::Settings() noexcept
         : m_interval {300}
         , m_combo(false, true, false, 's')
         , m_verbosity {Verbosity::QUIET}
@@ -38,7 +41,7 @@ namespace core
     {
     }
 
-    Settings::Settings(const Settings& rhs, Settings::Mask mask)
+    Settings::Settings(const Settings& rhs, Settings::Mask mask) noexcept
         : Settings()
     {
         if (mask[Bits::INTERVAL]) {
@@ -58,7 +61,7 @@ namespace core
         }
     }
 
-    Settings::Settings(Settings&& rhs, Settings::Mask mask)
+    Settings::Settings(Settings&& rhs, Settings::Mask mask) noexcept
         : Settings()
     {
         if (mask[Bits::INTERVAL]) {
@@ -78,7 +81,7 @@ namespace core
         }
     }
 
-    bool operator ==(const Settings& lhs, const Settings& rhs)
+    bool operator ==(const Settings& lhs, const Settings& rhs) noexcept
     {
         return (
             lhs.m_interval == rhs.m_interval &&
@@ -91,10 +94,10 @@ namespace core
 
     void Settings::set_interval(std::chrono::seconds rhs)
     {
-        m_interval = std::min(std::max(rhs, interval::MINIMUM), interval::MAXIMUM);
+        m_interval = std::min(std::max(rhs, min_interval), max_interval);
     }
 
-    void Settings::set_key_combo(KeyCombo rhs)
+    void Settings::set_key_combo(const KeyCombo& rhs)
     {
         m_combo = rhs;
     }
@@ -109,7 +112,7 @@ namespace core
         m_verbosity = to_verbosity(rhs);
     }
 
-    bool Settings::verbosity_exceeds(Verbosity minimal) const
+    bool Settings::verbosity_exceeds(Verbosity minimal) const noexcept
     {
         return m_verbosity >= minimal;
     }

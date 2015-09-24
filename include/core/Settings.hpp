@@ -36,68 +36,120 @@
 
 namespace core
 {
-    // Define bounds to the interval.
-    namespace interval
-    {
-        // Minimum interval is 5 seconds, maximum is 1 day.
-        constexpr std::chrono::seconds MINIMUM {5};
-        constexpr std::chrono::seconds MAXIMUM {24 * 60 * 60};
-    }
-
+    /*!This class wraps all configuration the user can apply to Autosave.
+     */
     class Settings
     {
     public:
-        // Define  a type with which one may signal which of the
-        // settings should be used or have been modified.
-        enum Bits
-        {
-            INTERVAL = 0,
-            KEY_COMBO,
-            VERBOSITY,
-            TARGET_APPS,
-            CMDLINE
-        };
+        //! The minimum allowed value of the `interval` attribute.
+        constexpr static std::chrono::seconds min_interval {5};
+        //! The maximum allowed value of the `interval` attribute.
+        constexpr static std::chrono::seconds max_interval {24 * 60 * 60};
+
+        //! This enum is used to specify a Settings::Mask.
+        enum Bits { INTERVAL=0  //!< Represents the `interval` attribute.
+                  , KEY_COMBO   //!< Represents the `key_combo` attribute.
+                  , VERBOSITY   //!< Represents the `verbosity` attribute.
+                  , TARGET_APPS //!< Represents the `target_apps` attribute.
+                  , CMDLINE     //!< Represents the `cmdline` attribute.
+                  };
+
+        //! Bitmask that allows copying/moving only selected attributes of a Settings object.
         typedef std::bitset<CMDLINE+1> Mask;
 
     public:
-        // Constructors, destructor.
-        Settings();
-        Settings(const Settings& rhs) = default;
-        Settings(const Settings& rhs, Mask mask);
-        Settings(Settings&& rhs) = default;
-        Settings(Settings&& rhs, Mask mask);
+        /*!Create an instance with its attributes set to the default.
+         */
+        Settings() noexcept;
+
+        /*!Copy attributes of \a rhs.
+         */
+        Settings(const Settings& rhs) noexcept = default;
+
+        /*!Copy only selected attributes of \a rhs.
+         *
+         * This copy constructor only copies those attributes of \a rhs,
+         * which have their respective bit set in the \a mask.
+         * For all other attributes, the default value is assumed.
+         *
+         * \param rhs Another Settings object.
+         * \param mask The mask that determines which attributes to copy.
+         */
+        Settings(const Settings& rhs, Mask mask) noexcept;
+
+        /*! Move attributes of \a rhs.
+         */
+        Settings(Settings&& rhs) noexcept = default;
+
+        /*!Move only selected attributes of \a rhs.
+         *
+         * This move constructor only moves those attributes of \a rhs,
+         * which have their respective bit set in the \a mask.
+         * For all other attributes, the default value is assumed.
+         *
+         * \param rhs Another Settings object.
+         * \param mask The mask that determines which attributes to move.
+         */
+        Settings(Settings&& rhs, Mask mask) noexcept;
+
+        /*!Destructor.
+         */
         ~Settings() {}
 
         // Operator overloads.
-        friend bool operator ==(const Settings& lhs, const Settings& rhs);
-        friend bool operator !=(const Settings& lhs, const Settings& rhs);
+        friend bool operator ==(const Settings& lhs, const Settings& rhs) noexcept;
+        friend bool operator !=(const Settings& lhs, const Settings& rhs) noexcept;
 
-        // Setter functions.
+        /*!Set a new value for the `interval` attribute.
+         *
+         * If \a rhs lies outside the range of min_interval and max_interval,
+         * it is clamped into this range.
+         */
         void set_interval(std::chrono::seconds rhs);
-        void set_key_combo(KeyCombo rhs);
+
+        //!Set a new value for the `key_combo` attribute.
+        void set_key_combo(const KeyCombo& rhs);
+
+        //!Set a new value for the `verbosity` attribute.
         void set_verbosity(Verbosity rhs);
+
+        //! \overload
         void set_verbosity(int rhs);
 
-        // Getter functions.
+        //! Return the current value of the `interval` attribute.
         inline std::chrono::seconds get_interval() const { return m_interval; }
+
+        //! Return the current value of the `key_combo` attribute.
         inline KeyCombo get_key_combo() const { return m_combo; }
+
+        //! Return the current value of the `verbosity` attribute.
         inline Verbosity get_verbosity() const { return m_verbosity; }
 
-        // Extended getter functions.
-        bool verbosity_exceeds(Verbosity minimal) const;
+        /*!Return `true` if the current verbosity is higher than \a minimal.
+         *
+         * \param minimal The verbosity level to check against.
+         *
+         * \returns `true` if the current verbosity level is equal to or
+         *          higher than \a minimal, `false` otherwise.
+         */
+        bool verbosity_exceeds(Verbosity minimal) const noexcept;
 
     private:
-        std::chrono::seconds m_interval;        // Seconds after which to send input.
-        KeyCombo m_combo;                       // Input to be sent.
-        Verbosity m_verbosity;                  // Verbosity level of Autosave.
-        std::vector<std::string> m_target_apps; // Apps to which to send hotkey when active.
-        std::string m_cmdline;                  // Command line to execute, resulting process
-                                                // becomes lone target of Autosave.
-                                                // Overrides m_target_apps.
+        std::chrono::seconds m_interval;        //!< Seconds after which to send input.
+        KeyCombo m_combo;                       //!< Input to be sent.
+        Verbosity m_verbosity;                  //!< Verbosity level of Autosave.
+        std::vector<std::string> m_target_apps; //!< Apps to which to send hotkey when active.
+        std::string m_cmdline;                  /*!< Command line to execute. Resulting process
+                                                 * becomes lone target of Autosave.
+                                                 * Overrides m_target_apps.
+                                                 */
     };
 
-    bool operator ==(const Settings& lhs, const Settings& rhs);
-    inline bool operator !=(const Settings& lhs, const Settings& rhs) {
+    //! Two Settings objects are considered equal if all of their attributes are equal.
+    bool operator ==(const Settings& lhs, const Settings& rhs) noexcept;
+
+    //! Two Settings objects are considered unequal if any of their attributes are unequal.
+    inline bool operator !=(const Settings& lhs, const Settings& rhs) noexcept {
         return !(lhs == rhs);
     }
 }
