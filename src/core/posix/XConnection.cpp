@@ -97,6 +97,8 @@ namespace core { namespace X11
         xcb_keycode_t m_shift_code;
     };
 
+
+
     // X11::Error member functions
 
     Error::Error(unsigned int error_code, const char* location) noexcept
@@ -119,6 +121,8 @@ namespace core { namespace X11
     {
         return m_what.c_str();
     }
+
+
 
     // X11::XConnection and X11::XConnection::Impl member functions
 
