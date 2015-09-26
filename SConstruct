@@ -7,7 +7,7 @@ VariantDir("build", "src", duplicate=0)
 default_env = Environment(
     CPPPATH = "./include",
     CXXFLAGS = ["-std=c++14", "-pthread", "-Wall", "-Wextra"],
-    CPPFLAGS = ["-DTEST_PROCESS_BY_EXE"],
+    #~ CPPFLAGS = ["-DTEST_PROCESS_BY_EXE"],
     )
 
 if not default_env.GetOption('clean'):
