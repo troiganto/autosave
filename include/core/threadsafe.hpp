@@ -53,8 +53,8 @@ namespace core
         template<typename var_type>
         class Pipe
         {
-            std::recursive_mutex m_mutex;
-            std::condition_variable_any m_cv;
+            std::mutex m_mutex;
+            std::condition_variable m_cv;
             var_type m_value;
 
         public:
@@ -66,7 +66,7 @@ namespace core
              * This function throws if copying or moving \a value throws.
              */
             template<typename arg_type>
-            Pipe(arg_type&& value)
+            explicit Pipe(arg_type&& value)
                 noexcept(noexcept(var_type(std::forward<arg_type>(value))))
                 : m_value(std::forward<arg_type>(value))
             {}
@@ -76,16 +76,18 @@ namespace core
 
             /*!Move an instance.
              *
-             * This function throws if copying or moving the `value` throws.
+             * This function throws if moving or copying Pipe::value() throws.
              */
-            Pipe(Pipe<var_type>&& rhs) noexcept(noexcept(var_type(rhs.m_value))) = default;
+            Pipe(Pipe<var_type>&& rhs) noexcept(noexcept(var_type(rhs.m_value)))
+                : m_value(rhs.m_value)
+            {}
 
             //!Pipes cannot be copied.
             Pipe& operator =(const Pipe<var_type>& rhs) = delete;
 
             /*!Move an instance.
              *
-             * This function throws if copying or moving the `value` throws.
+             * This function throws if moving or copying Pipe::value() throws.
              */
             Pipe& operator =(Pipe<var_type>&& rhs) noexcept(noexcept(var_type(rhs.m_value))) = default;
 
@@ -94,12 +96,24 @@ namespace core
                 return m_mutex;
             }
 
+            /*!Convenience function serving as a short-hand constructor
+             * of `std::unique_lock`.
+             *
+             * \return An `std::unique_lock` of this pipe's underlying mutex.
+             */
+            inline std::unique_lock<std::mutex> lock() noexcept {
+                return std::unique_lock<std::mutex>(m_mutex);
+            }
+
             //! \return A reference to the pipe's underlying `condition_variable`.
             inline std::condition_variable& cv() noexcept {
                 return m_cv;
             }
 
-            //! \return A reference to the pipe's underlying `value`.
+            /*! \return A reference to the pipe's underlying `value`.
+             *
+             * \sa Pipe::signal()
+             */
             inline var_type& value() noexcept {
                 return m_value;
             }
@@ -107,6 +121,34 @@ namespace core
             //! \overload
             inline const var_type& value() const noexcept {
                 return m_value;
+            }
+
+            /*!Sets Pipe::value() to a new \a value and notifies all
+             * threads waiting for Pipe::cv().
+             *
+             * This function throws if assigning \a value throws.
+             */
+            template<typename arg_type>
+            void signal(arg_type&& value)
+                noexcept(noexcept(m_value = std::forward<arg_type>(value)))
+            {
+                m_value = std::forward<arg_type>(value);
+                m_cv.notify_all();
+            }
+
+            /*!Acquire a lock on this pipe's `mutex` before calling Pipe::signal().
+             *
+             * Note that the behavior is undefined if this thread already
+             * has a lock on this pipe's `mutex`.
+             *
+             * This function throws if assigning \a value throws.
+             */
+            template<typename arg_type>
+            void locked_signal(arg_type&& value)
+                noexcept(noexcept(m_value = std::forward<arg_type>(value)))
+            {
+                auto temp_lock = lock();
+                signal(std::forward<arg_type>(value));
             }
 
             /*!Convenience function serving as an explicit conversion
@@ -122,7 +164,7 @@ namespace core
         template<typename var_type>
         class Reader
         {
-            Pipe& m_parent;
+            Pipe<var_type>& m_parent;
 
         public:
             /*!Create an instance.
@@ -150,14 +192,19 @@ namespace core
                 return m_parent;
             }
 
+            //! \sa Pipe::lock()
+            inline std::unique_lock<std::mutex> lock() noexcept {
+                return m_parent.lock();
+            }
+
             //! \sa Pipe::cv()
             inline std::condition_variable& cv() noexcept {
-                return m_parent.cv;
+                return m_parent.cv();
             }
 
             //! \sa Pipe::value()
             inline const var_type& value() const noexcept {
-                return m_value;
+                return m_parent.value();
             }
         };
     }

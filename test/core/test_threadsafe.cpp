@@ -2,10 +2,10 @@
 #include <bandit/bandit.h>
 #include <iostream>
 #include <utility>
+//~ #include <sstream>
 #include <string>
 #include <thread>
-#include <system_error>
-#include "core/ThreadSafe.hpp"
+#include "core/threadsafe.hpp"
 
 using namespace bandit;
 
@@ -105,29 +105,26 @@ go_bandit([](){
 
     describe("The core::ThreadSafe::Pipe", [](){
 
-        auto check_mock = []( const Mock& mock, bool exp_defc, bool exp_copc
-                            , bool exp_movc, bool exp_copa, bool exp_mova
-                            )
+        auto check_mock = []( const Mock& mock, std::array<bool, 5> expected)
         {
             std::string where;
             try {
                 where="Default Constructor";
-                AssertThat(mock.default_constructor_called, Equals(exp_defc));
+                AssertThat(mock.default_constructor_called, Equals(expected[0]));
                 where="Copy Constructor";
-                AssertThat(mock.copy_constructor_called, Equals(exp_copc));
+                AssertThat(mock.copy_constructor_called, Equals(expected[1]));
                 where="Move Constructor";
-                AssertThat(mock.move_constructor_called, Equals(exp_movc));
+                AssertThat(mock.move_constructor_called, Equals(expected[2]));
                 where="Copy Assignment";
-                AssertThat(mock.copy_assignment_called, Equals(exp_copa));
+                AssertThat(mock.copy_assignment_called, Equals(expected[3]));
                 where="Move Assignment";
-                AssertThat(mock.move_assignment_called, Equals(exp_mova));
+                AssertThat(mock.move_assignment_called, Equals(expected[4]));
             }
             catch (const AssertionException& exc) {
-                std::string message = exc.GetMessage();
-                message += "Failed at check for ";
-                message += where;
-                message.push_back('\n');
-                throw AssertionException( message
+                std::stringstream message;
+                message << exc.GetMessage() << "Failed at check for "
+                        << where << '\n';
+                throw AssertionException( message.str()
                                         , exc.GetFilename()
                                         , exc.GetLineNumber()
                                         );
@@ -136,157 +133,217 @@ go_bandit([](){
 
         describe("constructor", [&](){
 
-            using core::ThreadSafe::Pipe;
+            using core::threadsafe::Pipe;
 
             it("copies lvalue arguments", [&](){
                 Mock mock;
                 Pipe<Mock> pipe(mock);
-                check_mock(pipe.get(), false, true, false, false, false);
+                check_mock(pipe.value(), {false, true, false, false, false});
             });
 
             it("moves rvalue arguments", [&](){
                 Pipe<Mock> pipe {Mock()};
-                check_mock(pipe.get(), false, false, true, false, false);
+                check_mock(pipe.value(), {false, false, true, false, false});
+            });
+
+            it("is noexcept for integers", [&](){
+                AssertThat(noexcept(Pipe<int>(0)), IsTrue());
+            });
+
+            it("is noexcept when moving an std::string", [&](){
+                std::string s;
+                AssertThat(noexcept(Pipe<std::string>(std::move(s))), IsTrue());
+            });
+
+            it("may throw when copying an std::string", [&](){
+                const std::string s;
+                AssertThat(noexcept(Pipe<std::string>(s)), IsFalse());
+            });
+
+            it("is noexcept when moving a noexcept pipe", [&](){
+                Pipe<int> pipe(0);
+                AssertThat(noexcept(Pipe<int>(std::move(pipe))), IsTrue());
+            });
+
+            it("may throw when enforcing a string copy while moving a pipe", [&](){
+                Pipe<const std::string> pipe("");
+                AssertThat(noexcept(Pipe<const std::string>(std::move(pipe))), IsFalse());
             });
 
         });
 
-        describe("setter", [&](){
+        describe("member function signal", [&](){
 
-            using core::ThreadSafe::Pipe;
+            using core::threadsafe::Pipe;
 
             it("copy-assigns lvalues arguments", [&](){
                 Pipe<Mock> pipe {Mock()};
                 Mock mock;
-                pipe.set(mock);
-                check_mock(pipe.get(), false, false, true, true, false);
+                pipe.signal(mock);
+                check_mock(pipe.value(), {false, false, true, true, false});
             });
 
             it("move-assigns rvalue arguments", [&](){
                 Mock mock;
                 Pipe<Mock> pipe(mock);
-                pipe.set(Mock());
-                check_mock(pipe.get(), false, true, false, false, true);
+                pipe.signal(Mock());
+                check_mock(pipe.value(), {false, true, false, false, true});
+            });
+
+            it("is noexcept for integers", [&](){
+                Pipe<int> pipe(0);
+                AssertThat(noexcept(pipe.signal(0)), IsTrue());
+            });
+
+            it("is noexcept iff move-assigning an std::string is noexcept", [&](){
+                Pipe<std::string> pipe("");
+                std::string s;
+                AssertThat( noexcept(pipe.signal(std::move(s)))
+                          , Equals(noexcept(s = std::string()))
+                          );
+            });
+
+            it("may throw when copying an std::string", [&](){
+                Pipe<std::string> pipe("");
+                const std::string s;
+                AssertThat(noexcept(pipe.signal(s)), IsFalse());
+            });
+
+            it("has the same noexcept spec as Pipe::locked_signal", [&](){
+                Mock m;
+                Pipe<int> a(0);
+                Pipe<Mock> b(m);
+                Pipe<std::string> c("");
+                AssertThat(noexcept(a.signal(0)), Equals(noexcept(a.locked_signal(0))));
+                AssertThat(noexcept(b.signal(m)), Equals(noexcept(b.locked_signal(m))));
+                AssertThat(noexcept(c.signal("")), Equals(noexcept(c.locked_signal(""))));
             });
 
         });
 
         describe("class", [&](){
 
-            using namespace core::ThreadSafe;
+            using namespace core::threadsafe;
             using namespace std::literals;
 
             it("may be waited for", [&](){
                 Pipe<int> pipe(0);
-                auto lock = pipe.get_lock();
-                pipe.cv.wait_for(lock, 100ms);
+                auto lock = pipe.lock();
+                pipe.cv().wait_for(lock, 100ms);
             });
 
             it("allows threads to receive information", [&](){
-                auto thread_func = [](Reader<int> reader, int& output)
-                {
-                    // Wait until the reader gives a non-zero value.
-                    auto lock = reader.get_lock();
-                    reader.cv.wait(lock, [&](){ return reader.get() != 0; });
-                    // Then set output to that value.
-                    output = reader.get();
-                };
-                // Create a pipe to communicate with the thread.
                 Pipe<int> pipe(0);
                 int actual = 0;
                 int expected = 42;
+                auto thread_func = [&actual](Reader<int> reader)
+                {
+                    // Wait until the reader gives a non-zero value.
+                    auto lock = reader.lock();
+                    reader.cv().wait(lock, [&](){ return reader.value() != 0; });
+                    // Then set output to that value.
+                    actual = reader.value();
+                };
                 // Start the thread, hand it a pipe reader.
-                std::thread thread(thread_func, pipe.reader(), std::ref(actual));
+                std::thread thread(thread_func, pipe.reader());
+                // Wait until the thread is waiting.
                 std::this_thread::sleep_for(100ms);
-                pipe.set(expected);
+                // Now acquire the guaranteed-to-be free lock and wake the thread.
+                pipe.locked_signal(expected);
                 thread.join();
                 AssertThat(actual, Equals(expected));
             });
 
             it("allows threads to send information", [&](){
+                Pipe<int> pipe(0);
                 auto thread_func = [](Pipe<int>& pipe)
                 {
-                    pipe.set(42);
+                    // Before signaling, wait until the parent thread
+                    // releases its own lock.
+                    pipe.locked_signal(42);
                 };
-                Pipe<int> pipe(0);
-                // Create reader, lock the pipe till we're waiting
+                // Create reader, lock the pipe before the thread starts.
                 auto reader = pipe.reader();
-                auto lock = reader.get_lock();
+                auto lock = reader.lock();
                 // Start the thread.
                 std::thread thread(thread_func, std::ref(pipe));
                 std::this_thread::sleep_for(100ms);
                 AssertThat(thread.joinable(), IsTrue());
                 // *Now* the thread may continue.
-                reader.cv.wait(lock, [&](){ return reader.get() != 0; });
+                reader.cv().wait(lock, [&](){ return reader.value() != 0; });
                 thread.join();
-                AssertThat(reader.get(), Equals(42));
+                AssertThat(reader.value(), Equals(42));
             });
 
             it("may be used two at once", [&](){
                 using namespace std;
                 auto send_first = [](Pipe<bool>& send, Reader<bool> listen)
                 {
-                    send.set(true);
-                    auto lock = listen.get_lock();
-                    listen.cv.wait(lock, [&](){ return listen.get(); });
+                    auto lock = send.lock();
+                    send.signal(true);
+                    lock = listen.lock();
+                    listen.cv().wait(lock, [&](){ return listen.value(); });
                 };
                 auto listen_first = [](Pipe<bool>& send, Reader<bool> listen)
                 {
-                    auto lock = listen.get_lock();
-                    listen.cv.wait(lock, [&](){ return listen.get(); });
-                    send.set(true);
+                    auto lock = listen.lock();
+                    listen.cv().wait(lock, [&](){ return listen.value(); });
+                    lock = send.lock();
+                    send.signal(true);
                 };
                 Pipe<bool> back(false), forth(false);
                 thread one(send_first, ref(back), forth.reader());
                 thread two(listen_first, ref(forth), back.reader());
                 one.join();
                 two.join();
-                AssertThat(back.get(), Is().True().And().EqualTo(forth.get()));
+                AssertThat(back.value(), Is().True().And().EqualTo(forth.value()));
             });
 
             it("allow bi-directional communication", [&](){
                 using namespace std;
+                Pipe<int> data_pipe(0);
+                Pipe<bool> ready_pipe(false);
+                int output = 0;
                 auto generate_data = [](Pipe<int>& data, Pipe<bool>& ready)
                 {
                     for (int i=1; i<=10; ++i) {
-                        data.set(i);
-                        // Flag readiness and wait for unflagging.
-                        auto lock = ready.get_lock();
-                        ready.set(true);
-                        ready.cv.wait(lock, [&](){ return !ready.get(); });
+                        auto lock = data.lock();
+                        data.signal(i);
+                        // Flag readiness and wait until the ready flag is cleared.
+                        lock = ready.lock();
+                        ready.signal(true);
+                        ready.cv().wait(lock, [&](){ return !ready.value(); });
                     }
                     // Signal end of data.
-                    data.set(-1);
-                    ready.set(true);
+                    data.signal(-1);
+                    ready.signal(true);
                 };
-                auto process_data = [](Reader<int> data, Pipe<bool>& ready, int& output)
+                auto process_data = [&output](Reader<int> data, Pipe<bool>& ready)
                 {
                     int sum = 0;
                     int cur_val = 0;
                     do {
-                        auto ready_lock = ready.get_lock();
-                        ready.cv.wait(ready_lock, [&](){ return ready.get(); });
-                        // Handle data.
-                        cur_val = data.get();
+                        // Wait until the ready flag is set.
+                        auto lock = ready.lock();
+                        ready.cv().wait(lock, [&](){ return ready.value(); });
+                        // Handle data. Generator is waiting till we clear ready.
+                        cur_val = data.value();
                         if (cur_val >= 0) {
-                            sum += cur_val;
+                            sum += data.value();
                         }
-                        // Unflag to get the next batch of data.
-                        ready.set(false);
+                        // Clear flag to get the next batch of data.
+                        ready.signal(false);
                     } while (cur_val >= 0);
                     // Write final result to where the main thread can read it.
                     output = sum;
                 };
-                Pipe<int> data_pipe(0);
-                Pipe<bool> ready_pipe(false);
-                int output = 0;
                 thread generator(generate_data, ref(data_pipe), ref(ready_pipe));
-                thread processor(process_data, data_pipe.reader(), ref(ready_pipe), ref(output));
+                thread processor(process_data, data_pipe.reader(), ref(ready_pipe));
                 generator.join();
                 processor.join();
                 AssertThat(output, Equals(55));
-                AssertThat(data_pipe.get(), Equals(-1));
-                AssertThat(ready_pipe.get(), IsFalse());
+                AssertThat(data_pipe.value(), Equals(-1));
+                AssertThat(ready_pipe.value(), IsFalse());
             });
 
         });
