@@ -64,7 +64,7 @@ namespace core
 
         /*!Copy attributes of \a rhs.
          */
-        Settings(const Settings& rhs) noexcept = default;
+        Settings(const Settings& rhs) = default;
 
         /*!Copy only selected attributes of \a rhs.
          *
@@ -79,7 +79,7 @@ namespace core
 
         /*! Move attributes of \a rhs.
          */
-        Settings(Settings&& rhs) noexcept = default;
+        Settings(Settings&& rhs) = default;
 
         /*!Move only selected attributes of \a rhs.
          *
