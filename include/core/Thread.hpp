@@ -2,12 +2,6 @@
  * Thread.hpp
  * A background thread that regularly sends key events to other applications.
  *
- * Its behavior is determined by a passed core::Settings object.
- * It may be paused or terminated from outside using a write-only shared
- * variable. (It is read-only inside the thread.)
- * It gives information to the outside through a read-only shared
- * variable. (It is write-only inside the thread.)
- *
  * Copyright 2015 Nico <nico@FARD>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,11 +25,10 @@
 #pragma once
 
 #include "core/Settings.hpp"
+#include "core/threadsafe.hpp"
 
 #include <chrono>
 #include <thread>
-#include <mutex>
-#include <condition_variable>
 
 /*!The namespace of the Autosave core library.
  *
@@ -44,45 +37,95 @@
  */
 namespace core
 {
+    /*!A class that represents the key-event-sending background thread of Autosave.
+     *
+     * Its behavior is determined by a passed core::Settings object.
+     * It may be paused or terminated from outside using a write-only
+     * shared variable. (It is read-only inside the thread.)
+     * It gives information about the status of its timer to the outside
+     * through a read-only shared variable. (It is write-only inside the
+     * thread.)
+     */
     class Thread
     {
     public:
-        // The RequestedState is used by the main thread to control
-        // the sending thread.
+        //!Used by the main thread to control the sending thread.
         enum class RequestedState {
-            RUNNING,    // Do actual work (counting down, sending, etc.).
-            PAUSED,     // Do nothing until resume() is called.
-            STOPPED     // End the thread as soon as possible.
+            RUNNING,    //!< Do actual work (counting down, sending, etc.).
+            PAUSED,     //!< Do nothing until resume() is called.
+            STOPPED     //!< End the thread as soon as possible.
         };
 
-        // The SendState is used by the sending thread to give feedback
-        // to the main thread.
-        enum class SendState {
-            WAITING,    // There is quite some time till the next send event.
-            COUNTDOWN,  // Very close to the next send event.
-            OVERTIME,   // Should send, but no target window is focused.
-            SUCCESSFUL  // Successfully sent a keyboard event.
+        //! Used by the sending thread to give feedback to the main thread.
+        enum class TimerState {
+            WAITING,    //!< There is quite some time till the next send event.
+            COUNTDOWN,  //!< Very close to the next send event.
+            OVERTIME,   //!< Should send, but no target window is focused.
+            SUCCESSFUL  //!< Successfully sent a keyboard event.
         };
 
     public:
-        // Initializes the object and *then* starts the background thread.
-        Thread(const Settings& settings);
-        // Orders the background thread to stop and joins it.
+        /*!Create an instance.
+         *
+         * \arg settings contains all configurable options of the thread.
+         *      Note that the settings are passed by value to ensure its
+         *      lifetime within the thread.
+         *
+         * \sa start()
+         */
+        Thread(Settings settings);
+
+        /*!Waits until the sending thread is stopped and destructs this
+         * instance.
+         *
+         * \sa stop()
+         */
         ~Thread();
 
-        // Setter functions for the requested state.
-
-        // stopped -> running
+        /*!Start the sending thread.
+         *
+         * If the thread status is `STOPPED`, start a new thread.
+         * If the thread is already `RUNNING` or `PAUSED`, do nothing.
+         *
+         * By having a start() function separate from the constructor,
+         * we can be sure that this instance is fully constructed when
+         * the thread starts.
+         *
+         * \sa pause(), resume(), stop()
+         */
         void start();
-        // running/paused -> paused
+
+        /*!Pause the sending thread.
+         *
+         * If the thread status is `RUNNING`, make it wait until resume()
+         * is called.
+         * If the thread is already `PAUSED` or `STOPPED`, do nothing.
+         *
+         * \sa start(), resume(), stop()
+         */
         inline void pause() noexcept {
             set_requested_state(RequestedState::PAUSED);
         }
-        // running/paused -> running
+
+        /*!Resume a paused sending thread.
+         *
+         * If the thread status is `PAUSED`, make it continue its work.
+         * If the thread is already `RUNNING` or `STOPPED`, do nothing.
+         *
+         * \sa start(), pause(), stop()
+         */
         inline void resume() noexcept {
             set_requested_state(RequestedState::RUNNING);
         }
-        // running/paused -> stopped, also join the thread.
+
+        /*!Stop a running thread.
+         *
+         * Make the thread quit as soon as possible and wait until it
+         * has finished.
+         * If the thread is already `STOPPED`, do nothing.
+         *
+         * \sa start(), pause(), resume()
+         */
         inline void stop() {
             set_requested_state(RequestedState::STOPPED);
             if (m_thread.joinable()) {
@@ -90,37 +133,27 @@ namespace core
             }
         }
 
-        // Getter function for the sending thread's send state.
-
+        /*!Return the state of the sending timer.
+         *
+         * \returns the read-end of the pipe for the sending timer state.
+         */
+        inline threadsafe::Reader<TimerState> get_timer_state() {
+            return m_timer_state.reader();
+        }
 
     private:
-        const Settings& m_settings;
-        std::chrono::seconds m_countdown;
-        // The object representing the sending thread.
-        std::thread m_thread;
+        const Settings m_settings;  //!< All options to the sending thread.
+        std::thread m_thread;       //!< Representation of the sending thread.
 
-        volatile RequestedState m_req_state;
-        std::mutex m_req_state_mutex;
-        std::condition_variable m_req_state_cv;
-        // The setter is only used by the main thread.
+        //! Pipe to the sending thread that sends pause and resume commands.
+        threadsafe::Pipe<RequestedState> m_req_state;
+        //! Pipe from the sending thread that delivers the timer state.
+        threadsafe::Pipe<TimerState> m_timer_state;
+
+        /*! Internal implementation of setting the requested state.
+         *
+         *  \sa pause(), resume(), stop()
+         */
         void set_requested_state(RequestedState new_state) noexcept;
-        // The getters are only used by the sending thread.
-        inline bool should_stop() const noexcept {
-            return m_req_state == RequestedState::STOPPED;
-        }
-        inline bool may_act() const noexcept {
-            return m_req_state == RequestedState::RUNNING;
-        }
-        inline bool should_pause() const noexcept {
-            return m_req_state == RequestedState::PAUSED;
-        }
-
-        void set_send_state() noexcept;
-
-        // The main routine of the thread.
-        void main() noexcept;
-        // The actions taken every second.
-        void step();
-
     };
 }

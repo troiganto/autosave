@@ -25,90 +25,102 @@
 #include "core/Thread.hpp"
 
 #include <stdexcept>
-#include <iostream>
+#include <utility>
 
 using namespace std::literals;
 
 namespace core
 {
-    Thread::Thread(const Settings& settings)
-        : m_settings(settings)
-        , m_countdown(settings.get_interval())
+    namespace
+    {
+        void thread_main( const Settings& settings
+                        , threadsafe::Reader<Thread::RequestedState> req_state
+                        , threadsafe::Pipe<Thread::TimerState>& timer_state
+                        ) noexcept;
+        void thread_step();
+    }
+
+    Thread::Thread(Settings settings)
+        : m_settings(std::move(settings))
         , m_thread()
         , m_req_state(RequestedState::STOPPED)
-        , m_req_state_mutex()
-        , m_req_state_cv()
-    {
-        std::cout << "Thread constructed" << std::endl;
-    }
+        , m_timer_state(TimerState::WAITING)
+    {}
 
     Thread::~Thread()
     {
         stop();
-        std::cout << "Thread destructed" << std::endl;
     }
 
-    // By having a separate function for actually starting the thread,
-    // we can be sure `this` is fully constructed when the thread
-    // starts going.
     void Thread::start()
     {
-        if (!m_thread.joinable() && m_req_state == RequestedState::STOPPED) {
-            // Extra scope for automatic locking/unlocking.
-            m_req_state = RequestedState::RUNNING;
-            m_thread = std::thread(&Thread::main, this);
+        if (m_req_state.value() == RequestedState::STOPPED) {
+            // If the thread hasn't quite stopped yet, wait for it.
+            if (m_thread.joinable()) {
+                m_thread.join();
+            }
+            m_req_state.value() = RequestedState::RUNNING;
+            m_thread = std::thread( &thread_main
+                                  , std::ref(m_settings)
+                                  , m_req_state.reader()
+                                  , std::ref(m_timer_state)
+                                  );
         }
     }
 
     void Thread::set_requested_state(RequestedState new_state) noexcept
     {
-        if (m_req_state != RequestedState::STOPPED) {
-            // Extra scope for automatic locking/unlocking.
-            {
-                std::lock_guard<std::mutex> lock(m_req_state_mutex);
-                m_req_state = new_state;
-            }
-            m_req_state_cv.notify_one();
+        if (m_req_state.value() != RequestedState::STOPPED) {
+            m_req_state.locked_signal(new_state);
         }
     }
 
-    void Thread::main() noexcept
-    {
-        std::unique_lock<std::mutex> lock(m_req_state_mutex);
-        while (!should_stop()) {
-            // Wait for 1 second or until the requested state changes.
-            m_req_state_cv.wait_for(lock, 1s);
-            if (may_act()) {
-                step();
-            }
-            else if (should_pause()) {
-                // Wait until state "paused" is no longer requested.
-                m_req_state_cv.wait(lock, [this](){ return !should_pause(); });
-            }
-        }
-        // Note: If *any* exception occurs here, the whole program is terminated.
-    }
 
-    void Thread::step()
+    namespace
     {
-        //~ if delayed_sending_loop
-            //~ if active window matches
-                //~ send
-            //~ else if no window matches
-                //~ reset
+        void thread_main( const Settings& settings
+                        , threadsafe::Reader<Thread::RequestedState> req_state
+                        , threadsafe::Pipe<Thread::TimerState>& timer_state
+                        ) noexcept
+        {
+            auto req_state_lock = req_state.lock();
+            while (req_state.value() != Thread::RequestedState::STOPPED) {
+                // Wait for 1 second or until the requested state changes.
+                req_state.cv().wait_for(req_state_lock, 1s);
+                if (req_state.value() == Thread::RequestedState::RUNNING) {
+                    thread_step();
+                }
+                else if (req_state.value() == Thread::RequestedState::PAUSED) {
+                    // Wait until state "paused" is no longer requested.
+                    req_state.cv().wait(req_state_lock, [&req_state](){
+                        return req_state.value() != Thread::RequestedState::PAUSED;
+                    });
+                }
+            }
+            // Note: If *any* exception occurs here, the whole program is terminated.
+        }
+
+        void thread_step()
+        {
+            //~ if delayed_sending_loop
+                //~ if active window matches
+                    //~ send
+                //~ else if no window matches
+                    //~ reset
+                //~ else
+                    //~ pass
+            //~ else if five seconds left
+                //~ if no window matches
+                    //~ reset
+                //~ else
+                    //~ start countdown
+            //~ else if countdown at zero
+                //~ if active window matches
+                    //~ send
+                //~ else
+                    //~ go into delayed_sending_loop
             //~ else
                 //~ pass
-        //~ else if five seconds left
-            //~ if no window matches
-                //~ reset
-            //~ else
-                //~ start countdown
-        //~ else if countdown at zero
-            //~ if active window matches
-                //~ send
-            //~ else
-                //~ go into delayed_sending_loop
-        //~ else
-            //~ pass
+        }
     }
 }
