@@ -147,8 +147,11 @@ namespace core
             void locked_signal(arg_type&& value)
                 noexcept(noexcept(m_value = std::forward<arg_type>(value)))
             {
-                auto temp_lock = lock();
-                signal(std::forward<arg_type>(value));
+                {
+                    auto temp_lock = lock();
+                    m_value = std::forward<arg_type>(value);
+                }
+                m_cv.notify_all();
             }
 
             /*!Convenience function serving as an explicit conversion
