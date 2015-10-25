@@ -3,12 +3,6 @@
  * Wrapper class around variables that manages simple setting and getting
  * in a thread-safe manner.
  *
- * Its behavior is determined by a passed core::Settings object.
- * It may be paused or terminated from outside using a write-only shared
- * variable. (It is read-only inside the thread.)
- * It gives information to the outside through a read-only shared
- * variable. (It is write-only inside the thread.)
- *
  * Copyright 2015 Nico <nico@FARD>
  *
  * This program is free software; you can redistribute it and/or modify
