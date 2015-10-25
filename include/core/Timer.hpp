@@ -107,7 +107,7 @@ namespace core
         /*!Set this Timer's position back to its length and its state
          * back to State::WAITING.
          */
-        void reset() {
+        inline void reset() {
             m_position = m_length;
             m_state = State::WAITING;
         }
@@ -119,7 +119,7 @@ namespace core
          * extra second, but also carries different semantics than
          * just resetting the timer.
          */
-        void succeed() {
+        inline void succeed() {
             m_position = m_length;
             m_state = State::SUCCESSFUL;
         }
