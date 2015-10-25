@@ -83,7 +83,13 @@ namespace core
                         , threadsafe::Pipe<Thread::TimerState>& timer_state
                         ) noexcept
         {
+            // Define helper function for the PAUSED case.
+            auto should_continue = [&req_state](){
+                return req_state.value() != Thread::RequestedState::PAUSED;
+            };
+            // Acquire lock.
             auto req_state_lock = req_state.lock();
+            // Main loop.
             while (req_state.value() != Thread::RequestedState::STOPPED) {
                 // Wait for 1 second or until the requested state changes.
                 req_state.cv().wait_for(req_state_lock, 1s);
@@ -91,36 +97,50 @@ namespace core
                     thread_step();
                 }
                 else if (req_state.value() == Thread::RequestedState::PAUSED) {
-                    // Wait until state "paused" is no longer requested.
-                    req_state.cv().wait(req_state_lock, [&req_state](){
-                        return req_state.value() != Thread::RequestedState::PAUSED;
-                    });
+                    req_state.cv().wait(req_state_lock, should_continue);
                 }
             }
             // Note: If *any* exception occurs here, the whole program is terminated.
         }
 
-        void thread_step()
+        void thread_step(/*timer, countdown, settings*/)
         {
-            //~ if delayed_sending_loop
-                //~ if active window matches
-                    //~ send
-                //~ else if no window matches
-                    //~ reset
-                //~ else
-                    //~ pass
-            //~ else if five seconds left
-                //~ if no window matches
-                    //~ reset
-                //~ else
-                    //~ start countdown
-            //~ else if countdown at zero
-                //~ if active window matches
-                    //~ send
-                //~ else
-                    //~ go into delayed_sending_loop
-            //~ else
-                //~ pass
+            auto lock = timer_state.lock()
+            switch (timer_state.value()) {
+                case Thread::TimerState::OVERTIME: {
+                    //~ if active window matches
+                        //~ send
+                    //~ else if no window matches
+                        //~ reset
+                    //~ else
+                        //~ pass
+                    break;
+                }
+                case Thread::TimerState::COUNTDOWN: {
+                    //~ else if countdown at zero
+                        //~ if active window matches
+                            //~ send
+                        //~ else
+                            //~ go into delayed_sending_loop
+                    break;
+                }
+                case Thread::TimerState::SUCCESSFUL: {
+                    // After 1s of showing "Okay", we start anew.
+                    // FIXME: Reset countdown.
+                    timer_state.value() = Thread::TimerState::WAITING;
+                    break;
+                }
+                // case Thread::TimerState::WAITING:
+                default: {
+                    //~ else if countdown at 5
+                        //~ if no window matches
+                            //~ reset
+                        //~ else
+                            //~ start countdown
+                }
+            }
+            lock.release();
+            timer_state.signal();
         }
     }
 }
