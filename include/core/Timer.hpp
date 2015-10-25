@@ -50,6 +50,12 @@ namespace core
             OVERTIME,   //!< The position is below or equal to 0.
             SUCCESSFUL  //!< Special state set by succeed().
         };
+
+        //! The minimum allowed value of the `interval` attribute.
+        constexpr static std::chrono::seconds countdown_pos {5};
+        //! The maximum allowed value of the `interval` attribute.
+        constexpr static std::chrono::seconds overtime_pos {0};
+
     public:
 
         /*!Create an instance.
@@ -95,10 +101,10 @@ namespace core
             else {
                 --m_position;
                 switch (m_position) {
-                    case 5:
+                    case countdown_pos:
                     m_state = State::COUNTDOWN;
                     break;
-                    case 0:
+                    case overtime_pos:
                     m_state = State::OVERTIME;
                 }
             }
