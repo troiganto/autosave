@@ -123,7 +123,14 @@ namespace core
                 return m_value;
             }
 
-            /*!Sets Pipe::value() to a new \a value and notifies all
+            /*!Notify all threads waiting for Pipe::cv().
+             */
+            void signal() noexcept
+            {
+                m_cv.notify_all();
+            }
+
+            /*!Set Pipe::value() to a new \a value and notify all
              * threads waiting for Pipe::cv().
              *
              * This function throws if assigning \a value throws.
