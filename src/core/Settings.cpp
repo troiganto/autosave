@@ -92,22 +92,22 @@ namespace core
             );
     }
 
-    void Settings::set_interval(std::chrono::seconds rhs)
+    void Settings::interval(std::chrono::seconds rhs) noexcept
     {
         m_interval = std::min(std::max(rhs, min_interval), max_interval);
     }
 
-    void Settings::set_key_combo(const KeyCombo& rhs)
+    void Settings::key_combo(const KeyCombo& rhs) noexcept
     {
         m_combo = rhs;
     }
 
-    void Settings::set_verbosity(Verbosity rhs)
+    void Settings::verbosity(Verbosity rhs) noexcept
     {
         m_verbosity = rhs;
     }
 
-    void Settings::set_verbosity(int rhs)
+    void Settings::verbosity(int rhs) noexcept
     {
         m_verbosity = to_verbosity(rhs);
     }

@@ -62,10 +62,6 @@ namespace core
          */
         Settings() noexcept;
 
-        /*!Copy attributes of \a rhs.
-         */
-        Settings(const Settings& rhs) = default;
-
         /*!Copy only selected attributes of \a rhs.
          *
          * This copy constructor only copies those attributes of \a rhs,
@@ -75,11 +71,7 @@ namespace core
          * \param rhs Another Settings object.
          * \param mask The mask that determines which attributes to copy.
          */
-        Settings(const Settings& rhs, Mask mask) noexcept;
-
-        /*! Move attributes of \a rhs.
-         */
-        Settings(Settings&& rhs) = default;
+        Settings(const Settings& rhs, Mask mask);
 
         /*!Move only selected attributes of \a rhs.
          *
@@ -90,40 +82,36 @@ namespace core
          * \param rhs Another Settings object.
          * \param mask The mask that determines which attributes to move.
          */
-        Settings(Settings&& rhs, Mask mask) noexcept;
-
-        /*!Destructor.
-         */
-        ~Settings() {}
+        Settings(Settings&& rhs, Mask mask);
 
         // Operator overloads.
         friend bool operator ==(const Settings& lhs, const Settings& rhs) noexcept;
         friend bool operator !=(const Settings& lhs, const Settings& rhs) noexcept;
+
+        //! \returns the current value of the `interval` attribute.
+        inline std::chrono::seconds interval() const noexcept { return m_interval; }
 
         /*!Set a new value for the `interval` attribute.
          *
          * If \a rhs lies outside the range of min_interval and max_interval,
          * it is clamped into this range.
          */
-        void set_interval(std::chrono::seconds rhs);
+        void interval(std::chrono::seconds rhs) noexcept;
+
+        //! \returns the current value of the `key_combo` attribute.
+        inline KeyCombo key_combo() const noexcept { return m_combo; }
 
         //!Set a new value for the `key_combo` attribute.
-        void set_key_combo(const KeyCombo& rhs);
+        void key_combo(const KeyCombo& rhs);
+
+        //! \returns the current value of the `verbosity` attribute.
+        inline Verbosity verbosity() const noexcept { return m_verbosity; }
 
         //!Set a new value for the `verbosity` attribute.
-        void set_verbosity(Verbosity rhs);
+        void verbosity(Verbosity rhs) noexcept;
 
         //! \overload
-        void set_verbosity(int rhs);
-
-        //! Return the current value of the `interval` attribute.
-        inline std::chrono::seconds get_interval() const { return m_interval; }
-
-        //! Return the current value of the `key_combo` attribute.
-        inline KeyCombo get_key_combo() const { return m_combo; }
-
-        //! Return the current value of the `verbosity` attribute.
-        inline Verbosity get_verbosity() const { return m_verbosity; }
+        void verbosity(int rhs) noexcept;
 
         /*!Return `true` if the current verbosity is higher than \a minimal.
          *
