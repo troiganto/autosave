@@ -34,7 +34,7 @@ int main()
 
     string input;
     core::Settings settings;
-    settings.set_interval(std::chrono::seconds(30));
+    settings.interval(std::chrono::seconds(30));
     cout << "Before Thread started" << endl;
     {
         core::Thread thread(settings);

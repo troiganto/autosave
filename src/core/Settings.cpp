@@ -41,7 +41,7 @@ namespace core
     {
     }
 
-    Settings::Settings(const Settings& rhs, Settings::Mask mask) noexcept
+    Settings::Settings(const Settings& rhs, Settings::Mask mask)
         : Settings()
     {
         if (mask[Bits::INTERVAL]) {

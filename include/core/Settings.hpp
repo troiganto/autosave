@@ -82,7 +82,7 @@ namespace core
          * \param rhs Another Settings object.
          * \param mask The mask that determines which attributes to move.
          */
-        Settings(Settings&& rhs, Mask mask);
+        Settings(Settings&& rhs, Mask mask) noexcept;
 
         // Operator overloads.
         friend bool operator ==(const Settings& lhs, const Settings& rhs) noexcept;
@@ -102,7 +102,7 @@ namespace core
         inline KeyCombo key_combo() const noexcept { return m_combo; }
 
         //!Set a new value for the `key_combo` attribute.
-        void key_combo(const KeyCombo& rhs);
+        void key_combo(const KeyCombo& rhs) noexcept;
 
         //! \returns the current value of the `verbosity` attribute.
         inline Verbosity verbosity() const noexcept { return m_verbosity; }
