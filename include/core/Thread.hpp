@@ -25,6 +25,7 @@
 #pragma once
 
 #include "core/Settings.hpp"
+#include "core/Timer.hpp"
 #include "core/threadsafe.hpp"
 
 #include <chrono>
@@ -54,14 +55,6 @@ namespace core
             RUNNING,    //!< Do actual work (counting down, sending, etc.).
             PAUSED,     //!< Do nothing until resume() is called.
             STOPPED     //!< End the thread as soon as possible.
-        };
-
-        //! Used by the sending thread to give feedback to the main thread.
-        enum class TimerState {
-            WAITING,    //!< There is quite some time till the next send event.
-            COUNTDOWN,  //!< Very close to the next send event.
-            OVERTIME,   //!< Should send, but no target window is focused.
-            SUCCESSFUL  //!< Successfully sent a keyboard event.
         };
 
     public:
@@ -137,8 +130,8 @@ namespace core
          *
          * \returns the read-end of the pipe for the sending timer state.
          */
-        inline threadsafe::Reader<TimerState> get_timer_state() {
-            return m_timer_state.reader();
+        inline threadsafe::Reader<Timer> get_timer() {
+            return m_timer.reader();
         }
 
     private:
@@ -148,7 +141,7 @@ namespace core
         //! Pipe to the sending thread that sends pause and resume commands.
         threadsafe::Pipe<RequestedState> m_req_state;
         //! Pipe from the sending thread that delivers the timer state.
-        threadsafe::Pipe<TimerState> m_timer_state;
+        threadsafe::Pipe<Timer> m_timer;
 
         /*! Internal implementation of setting the requested state.
          *

@@ -31,20 +31,22 @@ using namespace std::literals;
 
 namespace core
 {
-    namespace
+    namespace bgthread
     {
-        void thread_main( const Settings& settings
+        static void main( const Settings& settings
                         , threadsafe::Reader<Thread::RequestedState> req_state
-                        , threadsafe::Pipe<Thread::TimerState>& timer_state
+                        , threadsafe::Pipe<Timer>& timer
                         ) noexcept;
-        void thread_step();
+        static void step( const Settings& settings
+                        , threadsafe::Pipe<Timer>& pipe
+                        );
     }
 
     Thread::Thread(Settings settings)
         : m_settings(std::move(settings))
         , m_thread()
         , m_req_state(RequestedState::STOPPED)
-        , m_timer_state(TimerState::WAITING)
+        , m_timer(m_settings.interval())
     {}
 
     Thread::~Thread()
@@ -60,10 +62,10 @@ namespace core
                 m_thread.join();
             }
             m_req_state.value() = RequestedState::RUNNING;
-            m_thread = std::thread( &thread_main
+            m_thread = std::thread( &bgthread::main
                                   , std::ref(m_settings)
                                   , m_req_state.reader()
-                                  , std::ref(m_timer_state)
+                                  , std::ref(m_timer)
                                   );
         }
     }
@@ -76,71 +78,77 @@ namespace core
     }
 
 
-    namespace
+    void bgthread::main( const Settings& settings
+                       , threadsafe::Reader<Thread::RequestedState> req_state
+                       , threadsafe::Pipe<Timer>& timer
+                       ) noexcept
     {
-        void thread_main( const Settings& settings
-                        , threadsafe::Reader<Thread::RequestedState> req_state
-                        , threadsafe::Pipe<Thread::TimerState>& timer_state
-                        ) noexcept
-        {
-            // Define helper function for the PAUSED case.
-            auto should_continue = [&req_state](){
-                return req_state.value() != Thread::RequestedState::PAUSED;
-            };
-            // Acquire lock.
-            auto req_state_lock = req_state.lock();
-            // Main loop.
-            while (req_state.value() != Thread::RequestedState::STOPPED) {
-                // Wait for 1 second or until the requested state changes.
-                req_state.cv().wait_for(req_state_lock, 1s);
-                if (req_state.value() == Thread::RequestedState::RUNNING) {
-                    thread_step();
-                }
-                else if (req_state.value() == Thread::RequestedState::PAUSED) {
+        auto should_continue = [&req_state](){
+            return req_state.value() != Thread::RequestedState::PAUSED;
+        };
+        auto req_state_lock = req_state.lock();
+        // Main loop.
+        while (req_state.value() != Thread::RequestedState::STOPPED) {
+            req_state.cv().wait_for(req_state_lock, 1s);
+            switch (req_state.value()) {
+                case Thread::RequestedState::PAUSED:
                     req_state.cv().wait(req_state_lock, should_continue);
-                }
+                    break;
+                case Thread::RequestedState::RUNNING:
+                    step(settings, timer);
+                    break;
+                default: break;
             }
-            // Note: If *any* exception occurs here, the whole program is terminated.
         }
+        // Note: If *any* exception occurs here, the whole program is terminated.
+    }
 
-        void thread_step(/*timer, countdown, settings*/)
-        {
-            auto lock = timer_state.lock()
-            switch (timer_state.value()) {
-                case Thread::TimerState::OVERTIME: {
-                    //~ if active window matches
-                        //~ send
-                    //~ else if no window matches
-                        //~ reset
-                    //~ else
-                        //~ pass
-                    break;
+    void bgthread::step( const Settings& settings
+                       , threadsafe::Pipe<Timer>& pipe
+                       )
+    {
+        auto lock = pipe.lock();
+        Timer& timer = pipe.value();
+        bool should_signal = false;
+
+        timer.tick();
+        switch (timer.state()) {
+            case Timer::State::OVERTIME:
+                if (false/*active_window_matches()*/) {
+                    /*send();*/
+                    timer.succeed();
+                    should_signal = true;
                 }
-                case Thread::TimerState::COUNTDOWN: {
-                    //~ else if countdown at zero
-                        //~ if active window matches
-                            //~ send
-                        //~ else
-                            //~ go into delayed_sending_loop
-                    break;
+                else if (timer.position() == Timer::overtime_pos()) {
+                    // This branch is activated periodically due to
+                    // Timer::underflow_pos().
+                    if (false/*no_window_matches()*/) {
+                        timer.reset();
+                    }
+                    should_signal = true;
                 }
-                case Thread::TimerState::SUCCESSFUL: {
-                    // After 1s of showing "Okay", we start anew.
-                    // FIXME: Reset countdown.
-                    timer_state.value() = Thread::TimerState::WAITING;
-                    break;
+                break;
+            case Timer::State::COUNTDOWN:
+                if (timer.position() == Timer::countdown_pos() /*&&
+                    no_window_matches()*/)
+                {
+                    timer.reset();
                 }
-                // case Thread::TimerState::WAITING:
-                default: {
-                    //~ else if countdown at 5
-                        //~ if no window matches
-                            //~ reset
-                        //~ else
-                            //~ start countdown
+                // In countdown state, we must always signal.
+                // That's the point of counting down.
+                should_signal = true;
+                break;
+            // case Timer::State::WAITING:
+            default:
+                if (timer.position() == timer.length()) {
+                    // We have just returned from
+                    // Timer::State::SUCCESSFUL, signal this.
+                    should_signal = true;
                 }
-            }
+        }
+        if (should_signal) {
             lock.release();
-            timer_state.signal();
+            pipe.signal();
         }
     }
 }
