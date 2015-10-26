@@ -71,7 +71,7 @@ namespace core
     {
         return (i < static_cast<int>(Verbosity::MINIMUM) ||
                 i > static_cast<int>(Verbosity::MAXIMUM)) ?
-            throw std::out_of_range("to_verbosity") :
+            throw std::out_of_range(__func__) :
             static_cast<Verbosity>(i);
     }
 
