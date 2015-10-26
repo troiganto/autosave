@@ -25,6 +25,7 @@
 #pragma once
 
 #include <chrono>
+#include <stdexcept>
 
 namespace core
 {
@@ -69,12 +70,18 @@ namespace core
         /*!Create an instance.
          *
          * \arg length specifies the number of ticks it takes to reach zero.
+         *
+         * \throws std::out_of_range if \a length is equal or less than countdown_pos().
          */
-        explicit Timer(std::chrono::seconds length) noexcept
+        explicit Timer(std::chrono::seconds length)
             : m_length(length)
             , m_position(length)
             , m_state(State::WAITING)
-        {}
+        {
+            if (length <= countdown_pos()) {
+                throw std::out_of_range(__func__);
+            }
+        }
 
         //! \returns the length of the Timer.
         inline std::chrono::seconds length() const {
