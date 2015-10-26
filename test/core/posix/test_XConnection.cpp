@@ -1,12 +1,9 @@
 
-#include <core/KeyCombo.hpp>
-#include <core/posix/XConnection.hpp>
-#include <core/posix/POpenHelper.hpp>
-using namespace core;
-
+#include "core/KeyCombo.hpp"
+#include "core/posix/XConnection.hpp"
+#include "core/posix/POpenHelper.hpp"
 
 #include <bandit/bandit.h>
-
 #include <string>
 #include <stdexcept>
 
@@ -19,6 +16,8 @@ using namespace bandit;
 
 go_bandit([](){
 
+    using namespace core;
+
     describe("The XConnection class", [](){
 
         it("can construct an instance of itself", [](){
@@ -29,7 +28,7 @@ go_bandit([](){
             auto create_with_invalid_argument = [](){
                 X11::XConnection x(":1337");
                 };
-            AssertThrows(core::X11::Error, create_with_invalid_argument());
+            AssertThrows(X11::Error, create_with_invalid_argument());
         });
 
         it("can give the active window", [&](){
@@ -56,7 +55,7 @@ go_bandit([](){
 
         it("throws when asked for the parent of an invalid window", [&](){
             X11::XConnection x;
-            AssertThrows(core::X11::Error, x.get_parent(0xdeadbeef));
+            AssertThrows(X11::Error, x.get_parent(0xdeadbeef));
             AssertThat(LastException<X11::Error>().get_error_code(),
                        Equals(3 /*XCB_WINDOW*/));
         });

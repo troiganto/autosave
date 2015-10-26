@@ -1,7 +1,7 @@
 
-#include <core/posix/POpenHelper.hpp>
-#include <bandit/bandit.h>
+#include "core/posix/POpenHelper.hpp"
 
+#include <bandit/bandit.h>
 #include <string>
 #include <stdexcept>
 
