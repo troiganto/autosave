@@ -79,7 +79,7 @@ namespace core
             , m_state(State::WAITING)
         {
             if (length <= countdown_pos()) {
-                throw std::out_of_range(__func__);
+                throw std::out_of_range("core::Timer length too short");
             }
         }
 
@@ -154,3 +154,4 @@ namespace core
         State m_state;
     };
 }
+
