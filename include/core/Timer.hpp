@@ -51,10 +51,18 @@ namespace core
             SUCCESSFUL  //!< Special state set by succeed().
         };
 
-        //! The minimum allowed value of the `interval` attribute.
-        constexpr static std::chrono::seconds countdown_pos {5};
-        //! The maximum allowed value of the `interval` attribute.
-        constexpr static std::chrono::seconds overtime_pos {0};
+        //! The position at which to switch to the State COUNTDOWN.
+        static constexpr std::chrono::seconds countdown_pos() {
+            return std::chrono::seconds {5};
+        };
+        //! The position at which to switch to the State OVERTIME.
+        static constexpr std::chrono::seconds overtime_pos() {
+            return std::chrono::seconds {0};
+        };
+        //! \returns the position at which to return to overtime_pos.
+        static constexpr std::chrono::seconds underflow_pos() {
+            return std::chrono::seconds {-5};
+        }
 
     public:
 
@@ -65,7 +73,7 @@ namespace core
         explicit Timer(std::chrono::seconds length) noexcept
             : m_length(length)
             , m_position(length)
-            , m_state(WAITING)
+            , m_state(State::WAITING)
         {}
 
         //! \returns the length of the Timer.
@@ -100,12 +108,15 @@ namespace core
             }
             else {
                 --m_position;
-                switch (m_position) {
-                    case countdown_pos:
+                // Seconds are not integer, so we use ifs instead of switch.
+                if (m_position == countdown_pos()) {
                     m_state = State::COUNTDOWN;
-                    break;
-                    case overtime_pos:
+                }
+                else if (m_position == overtime_pos()) {
                     m_state = State::OVERTIME;
+                }
+                else if (m_position == underflow_pos()) {
+                    m_position = overtime_pos();
                 }
             }
         }
