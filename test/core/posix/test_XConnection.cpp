@@ -18,61 +18,89 @@ go_bandit([](){
 
     using namespace core;
 
-    describe("The XConnection class", [](){
+    describe("XConnection", [](){
 
-        it("can construct an instance of itself", [](){
-            X11::XConnection x;
+        describe("basically", [](){
+
+            it("can be constructed", [](){
+                X11::XConnection x;
+            });
+
+            it("throws if xdo_new fails", [&](){
+                AssertThrows(X11::Error, X11::XConnection {":1337"});
+            });
+
+            it("throws when asked for the parent of an invalid window", [&](){
+                X11::XConnection x;
+                AssertThrows(X11::Error, x.get_parent(0xdeadbeef));
+                AssertThat(LastException<X11::Error>().get_error_code(),
+                           Equals(3 /*XCB_WINDOW*/));
+            });
+
+            it("throws when asked to send an invalid key", [&](){
+                X11::XConnection x;
+                constexpr unsigned int XK_VOID_SYMBOL = 0xffffff;
+                AssertThrows(X11::Error, x.send_key_combo(KeyCombo(XK_VOID_SYMBOL)));
+                AssertThat(LastException<X11::Error>().get_error_code(),
+                           Equals(XK_VOID_SYMBOL));
+            });
+
         });
 
-        it("throws if xdo_new fails", [&](){
-            auto create_with_invalid_argument = [](){
-                X11::XConnection x(":1337");
-                };
-            AssertThrows(X11::Error, create_with_invalid_argument());
+        describe("active window", [](){
+
+            it("gives a window ID", [&](){
+                X11::XConnection x;
+                const auto window = x.get_active_window();
+                const auto title = x.get_window_title(window);
+
+                AssertThat(window, Is().GreaterThan(0));
+                AssertThat(title, Is().Not().EqualTo(""));
+            });
+
+            it("gives a process ID", [&](){
+                X11::XConnection x;
+                const auto window = x.get_active_window();
+                const auto pid = x.get_pid_window(window);
+                // 100 should exclude most system processes.
+                AssertThat(pid, Is().GreaterThan(100));
+            });
+
         });
 
-        it("can give the active window", [&](){
-            X11::XConnection x;
-            const auto window = x.get_active_window();
-            const auto title = x.get_window_title(window);
+        describe("input focus", [](){
 
-            AssertThat(window, Is().GreaterThan(0));
-            AssertThat(title, Is().Not().EqualTo(""));
+            it("gives a window ID", [&](){
+                X11::XConnection x;
+                const auto window = x.get_input_focus();
+                AssertThat(window, Is().GreaterThan(0));
+            });
+
+            it("gives a child of the active window", [&](){
+                X11::XConnection x;
+                const auto focus = x.get_input_focus();
+                const auto active = x.get_active_window();
+                AssertThat(x.get_parent(focus), Equals(active));
+            });
+
+            it("can't give a window title", [&](){
+                X11::XConnection x;
+                const auto window = x.get_input_focus();
+                AssertThat(x.get_window_title(window), Equals(""));
+                //~ AssertThrows(X11::Error, x.get_window_title(window));
+            });
+
+            it("can't give a process ID", [&](){
+                X11::XConnection x;
+                const auto window = x.get_input_focus();
+                AssertThrows(X11::Error, x.get_pid_window(window));
+            });
+
         });
 
-        it("can give the input focus", [&](){
-            X11::XConnection x;
-            const auto window = x.get_input_focus();
-            AssertThat(window, Is().GreaterThan(0));
-        });
+        xdescribe("interacts with gedit and", [&](){
 
-        it("knows the difference between input focus and active window", [&](){
-            X11::XConnection x;
-            const auto focus = x.get_input_focus();
-            const auto active = x.get_active_window();
-            AssertThat(x.get_parent(focus), Equals(active));
-        });
-
-        it("throws when asked for the parent of an invalid window", [&](){
-            X11::XConnection x;
-            AssertThrows(X11::Error, x.get_parent(0xdeadbeef));
-            AssertThat(LastException<X11::Error>().get_error_code(),
-                       Equals(3 /*XCB_WINDOW*/));
-        });
-
-        it("throws an exception when asked to send an invalid key", [&](){
-            X11::XConnection x;
-            constexpr unsigned int XK_VOID_SYMBOL = 0xffffff;
-            AssertThrows(X11::Error, [&](){
-                x.send_key_combo(KeyCombo(XK_VOID_SYMBOL));
-            }());
-            AssertThat(LastException<X11::Error>().get_error_code(),
-                       Equals(XK_VOID_SYMBOL));
-        });
-
-        xdescribe("when interacting with gedit", [&](){
-
-            it("can get a window's PID", [&](){
+            it("can get its PID", [&](){
                 X11::XConnection x;
                 POpenHelper poh("gedit & sleep 2s && kill -1 %1");
                 sleep(1);
