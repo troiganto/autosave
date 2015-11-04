@@ -54,10 +54,11 @@ main_env.StaticLibrary(
     source = autosave_sources,
     )
 
-test_env = main_env.Clone()
+# Create test environment. Note that "autosave" is prepended, not appended.
+test_env = main_env.Clone(LIBS=["autosave"])
 test_env.Append(
     LIBPATH = ["./build"],
-    LIBS = ["autosave"],
+    LIBS = main_env["LIBS"],
     ENV = os.environ,
     )
 
