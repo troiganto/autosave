@@ -26,9 +26,9 @@ go_bandit([](){
             AssertThat(poh.close(), Equals(127));
         });
 
-        it("gives exit code 1 there is a syntax error", [&](){
+        it("gives a non-zero exit code if there is a syntax error", [&](){
             POpenHelper poh("echo 'missing single quote");
-            AssertThat(poh.close(), Equals(1));
+            AssertThat(poh.close(), Is().Not().EqualTo(0));
         });
 
         it("returns the error code of the program", [&](){
