@@ -135,8 +135,9 @@ namespace core { namespace X11
         , m_syms(nullptr)
     {
         // Check connection.
-        if (!m_c) {
-            throw Error(0, "xcb_connect");
+        int connection_error = xcb_connection_has_error(m_c);
+        if (connection_error) {
+            throw Error(connection_error, "xcb_connect");
         }
         // Send atom requests.
         xcb_intern_atom_cookie_t pid_cookie =
