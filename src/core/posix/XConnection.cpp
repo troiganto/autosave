@@ -52,8 +52,8 @@ namespace core { namespace X11
         bool window_exists(xcb_window_t window) const;
 
     protected:
-        // Unwrap an atom given the cookie from a previous intern_atom request.
-        xcb_atom_t unwrap_atom(xcb_intern_atom_cookie_t cookie) const;
+        // Send a series of intern_atom request.
+        std::vector<xcb_atom_t> intern_atoms(const std::vector<std::string>& names) const;
 
         // Get property and automatically make sure that we get the whole property.
         // This is very inefficient only if:
@@ -139,17 +139,14 @@ namespace core { namespace X11
         if (connection_error) {
             throw Error(connection_error, "xcb_connect");
         }
-        // Send atom requests.
-        xcb_intern_atom_cookie_t pid_cookie =
-            xcb_intern_atom(m_c
-                           , 1              // only_if_exists
-                           , 11             // name_len
-                           , "_NET_WM_PID"  // name
-                           );
-        xcb_intern_atom_cookie_t win_name_cookie =
-            xcb_intern_atom(m_c, 1, 12, "_NET_WM_NAME");
-        xcb_intern_atom_cookie_t active_win_cookie =
-            xcb_intern_atom(m_c, 1, 18, "_NET_ACTIVE_WINDOW");
+        // Get atoms.
+        auto atoms = intern_atoms({ "_NET_WM_PID"
+                                  , "_NET_WM_NAME"
+                                  , "_NET_ACTIVE_WINDOW"
+                                  });
+        m_pid_atom = atoms[0];
+        m_win_name_atom = atoms[1];
+        m_active_win_atom = atoms[2];
         // Load key symbols.
         m_syms = xcb_key_symbols_alloc(m_c);
         if (!m_syms) {
@@ -158,11 +155,6 @@ namespace core { namespace X11
         m_alt_code = get_key_code(XK_Alt_L);
         m_ctrl_code = get_key_code(XK_Control_L);
         m_shift_code = get_key_code(XK_Shift_L);
-
-        // Receive atom request replies.
-        m_pid_atom = unwrap_atom(pid_cookie);
-        m_win_name_atom = unwrap_atom(win_name_cookie);
-        m_active_win_atom = unwrap_atom(active_win_cookie);
     }
 
     XConnection::~XConnection() {}
@@ -370,32 +362,51 @@ namespace core { namespace X11
 
     // Implementation-only member functions
 
-    /*!Wrapper around `xcb_intern_atom_reply`.
+    /*!Wrapper around `xcb_intern_atom`.
      *
-     * Wraps error and memory handling necessary when requesting the reply
-     * to a request.
+     * Takes a series of atom names and returns a series of atoms.
      *
-     * \param cookie A cookie returned by a call to `xcb_intern_atom()`.
+     * \param names A vector of names to be looked up.
      *
-     * \returns The atom previously queried for.
+     * \returns A series of atoms with the same ordering as in \a names.
      *
-     * \throws X11::Error if any X11 error occurs.
+     * \throws X11::Error if any atom does not exist.
      */
-    xcb_atom_t XConnection::Impl::unwrap_atom(xcb_intern_atom_cookie_t cookie) const
+    std::vector<xcb_atom_t> XConnection::Impl::intern_atoms
+        ( const std::vector<std::string>& names
+        ) const
     {
+        constexpr int only_if_exists = 1;
+        // Get a series of cookies.
+        std::vector<xcb_intern_atom_cookie_t> cookies;
+        cookies.reserve(names.size());
+        for (const std::string& name : names) {
+            xcb_intern_atom_cookie_t cookie =
+                xcb_intern_atom(m_c, only_if_exists, name.size(), name.c_str());
+            cookies.push_back(cookie);
+        }
+        // Unwrap each atom.
+        std::vector<xcb_atom_t> atoms;
         xcb_generic_error_t* error;
-        xcb_intern_atom_reply_t* reply =
-            xcb_intern_atom_reply(m_c, cookie, &error);
-        if (reply) {
-            xcb_atom_t atom = reply->atom;
-            free(reply);
-            return atom;
+        xcb_intern_atom_reply_t* reply;
+        size_t i_name = 0;
+        for (const xcb_intern_atom_cookie_t& cookie : cookies) {
+            reply = xcb_intern_atom_reply(m_c, cookie, &error);
+            if (reply) {
+                atoms.push_back(reply->atom);
+                free(reply);
+            }
+            else {
+                const unsigned int error_code = error->error_code;
+                free(error);
+                std::string message = "xcb_intern_atom: " + names[i_name];
+                throw Error(error_code, message.c_str());
+            }
+            // The overhead is acceptable because this function is
+            // caled only once.
+            ++i_name;
         }
-        else {
-            const unsigned int error_code = error->error_code;
-            free(error);
-            throw Error(error_code, "xcb_intern_atom");
-        }
+        return atoms;
     }
 
     /*!Wrapper around `xcb_get_property`.
