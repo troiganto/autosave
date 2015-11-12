@@ -128,6 +128,23 @@ namespace core
              */
             Window get_parent(Window child) const;
 
+            /*!Return \c true if \a child is a descendant of \a parent.
+             *
+             * \note
+             * `is_ancestor(window, window) == true`
+             * `is_ancestor(0, window) == false`
+             * `is_ancestor(window, 0) == false`
+             * `is_ancestor(0, 0) == false`
+             *
+             * \param parent The ancestor to be checked.
+             * \param child The descendant to be checked.
+             * \returns \c true if a chain of calls to get_parent() on
+             *          \a child leads to \a parent, \c false otherwise.
+             * \throws X11::Error if \a child doesn't exist and
+             *         `parent != child`.
+             */
+            bool is_descendant(Window parent, Window child) const;
+
             /*!Return the current input focus.
              *
              * Returns the X11 window that currently has the input focus.

@@ -44,6 +44,7 @@ namespace core { namespace X11
         Impl(const char* display=nullptr);
         ~Impl();
         xcb_window_t get_parent(xcb_window_t child) const;
+        bool is_descendant(xcb_window_t parent, xcb_window_t child) const;
         xcb_window_t get_input_focus() const noexcept;
         xcb_window_t get_active_window() const;
         unsigned long get_pid_window(xcb_window_t window) const;
@@ -52,34 +53,20 @@ namespace core { namespace X11
         bool window_exists(xcb_window_t window) const;
 
     protected:
-        // Send a series of intern_atom request.
         std::vector<xcb_atom_t> intern_atoms(const std::vector<std::string>& names) const;
-
-        // Get property and automatically make sure that we get the whole property.
-        // This is very inefficient only if:
-        // a) the initial guess for prop_len is bad (the request will be sent a second time)
-        // b) the whole property is very long (it will be requested in whole)
         std::unique_ptr<xcb_get_property_reply_t>
         get_property( xcb_window_t window
                     , xcb_atom_t prop
                     , xcb_atom_t prop_type
                     , uint32_t prop_len
                     ) const;
-
         xcb_keycode_t get_key_code(xcb_keysym_t symbol) const;
-
         void send_fake_input( xcb_window_t window
                             , uint8_t type
                             , xcb_keycode_t key_code
                             );
-
         std::vector<xcb_window_t> get_root_windows() const noexcept;
-
         xcb_window_t get_active_window_by_root(xcb_window_t root) const;
-
-        // Go up `child`'s line of parents and return the first member of
-        // `candidates` that appears in that line.
-        // Return XCB_WINDOW_NONE if no candidate is ancestor of `child`.
         xcb_window_t get_any_ancestor( std::vector<xcb_window_t> candidates
                                      , xcb_window_t child
                                      ) const;
@@ -186,6 +173,29 @@ namespace core { namespace X11
             free(error);
             throw Error(error_code, "xcb_query_tree");
         }
+    }
+
+    Window XConnection::is_descendant(Window parent, Window child) const
+    {
+        return pimpl->is_descendant(parent, child);
+    }
+    //! \sa XConnection::is_descendant()
+    bool XConnection::Impl::is_descendant( xcb_window_t parent
+                                         , xcb_window_t child
+                                         ) const
+    {
+        if (child == XCB_WINDOW_NONE || parent == XCB_WINDOW_NONE) {
+            return false;
+        }
+        do {
+            if (child == parent) {
+                return true;
+            }
+            else {
+                child = get_parent(child);
+            }
+        } while (child != XCB_WINDOW_NONE);
+        return false;
     }
 
     Window XConnection::get_input_focus() const noexcept
