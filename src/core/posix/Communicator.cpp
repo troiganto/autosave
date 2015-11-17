@@ -24,7 +24,7 @@
 
 #include "core/Communicator.hpp"
 #include "core/Process.hpp"
-#include "core/posix/XConnection.hpp"
+#include "core/posix/X11/Connection.hpp"
 
 namespace core
 {
@@ -34,7 +34,7 @@ namespace core
         Process get_active_process() const;
 
     private:
-        X11::XConnection m_xconn;
+        X11::Connection m_xconn;
     };
 
     Communicator::Communicator() : pimpl(new Impl) {}

@@ -1,5 +1,5 @@
 /*
- * XConnection.cpp
+ * ConnectionImpl.cpp
  *
  * Copyright 2015 Nico <nico@FARD>
  *
@@ -21,103 +21,15 @@
  *
  */
 
+#include <core/posix/X11/Error.hpp>
+#include <core/posix/X11/ConnectionImpl.hpp>
 
-#include <core/posix/XConnection.hpp>
-#include <core/KeyCombo.hpp>
-
-#include <vector>
-
-extern "C" {
-    #include <X11/keysym.h> // All key symbols as macros.
-}
-#include <xcb/xcb.h>
-#include <xcb/xtest.h>
-#include <xcb/xcb_keysyms.h>
-
-
-namespace core { namespace X11
+namespace core
 {
-    //! \brief Implementation of XConnection.
-    struct XConnection::Impl
+    namespace X11
     {
-    public:
-        Impl(const char* display=nullptr);
-        ~Impl();
-        xcb_window_t get_parent(xcb_window_t child) const;
-        bool is_descendant(xcb_window_t parent, xcb_window_t child) const;
-        xcb_window_t get_input_focus() const noexcept;
-        xcb_window_t get_active_window() const;
-        unsigned long get_pid_window(xcb_window_t window) const;
-        void send_key_combo(const KeyCombo& combo, xcb_window_t window);
-        std::string get_window_title(xcb_window_t window) const;
-        bool window_exists(xcb_window_t window) const;
-
-    protected:
-        std::vector<xcb_atom_t> intern_atoms(const std::vector<std::string>& names) const;
-        std::unique_ptr<xcb_get_property_reply_t>
-        get_property( xcb_window_t window
-                    , xcb_atom_t prop
-                    , xcb_atom_t prop_type
-                    , uint32_t prop_len
-                    ) const;
-        xcb_keycode_t get_key_code(xcb_keysym_t symbol) const;
-        void send_fake_input( xcb_window_t window
-                            , uint8_t type
-                            , xcb_keycode_t key_code
-                            );
-        std::vector<xcb_window_t> get_root_windows() const noexcept;
-        xcb_window_t get_active_window_by_root(xcb_window_t root) const;
-        xcb_window_t get_any_ancestor( std::vector<xcb_window_t> candidates
-                                     , xcb_window_t child
-                                     ) const;
-
-    private:
-        xcb_connection_t* m_c;
-
-        xcb_atom_t m_pid_atom;
-        xcb_atom_t m_win_name_atom;
-        xcb_atom_t m_active_win_atom;
-
-        xcb_key_symbols_t* m_syms;
-        xcb_keycode_t m_alt_code;
-        xcb_keycode_t m_ctrl_code;
-        xcb_keycode_t m_shift_code;
-    };
-
-
-
-    // X11::Error member functions
-
-    Error::Error(unsigned int error_code, const char* location) noexcept
-        : std::runtime_error("")
-        , m_code(error_code)
-        , m_what("X11 error caused by ")
-    {
-        if (location) {
-            m_what += "function ";
-            m_what += location;
-        }
-        else {
-            m_what += "unknown function";
-        }
-        m_what += ". Error code: ";
-        m_what += std::to_string(m_code);
-    }
-
-    const char* Error::what() const noexcept
-    {
-        return m_what.c_str();
-    }
-
-
-
-    // X11::XConnection and X11::XConnection::Impl member functions
-
-    XConnection::XConnection(const char* display)
-        : pimpl(new Impl(display))
-    {}
-    //! \sa XConnection::XConnection()
-    XConnection::Impl::Impl(const char* display)
+    //! \sa Connection::Connection()
+    Connection::Impl::Impl(const char* display)
         : m_c(xcb_connect(display, nullptr))
         , m_syms(nullptr)
     {
@@ -144,20 +56,15 @@ namespace core { namespace X11
         m_shift_code = get_key_code(XK_Shift_L);
     }
 
-    XConnection::~XConnection() {}
-    //! \sa XConnection::~XConnection()
-    XConnection::Impl::~Impl()
+    //! \sa Connection::~Connection()
+    Connection::Impl::~Impl()
     {
         xcb_key_symbols_free(m_syms);
         xcb_disconnect(m_c);
     }
 
-    Window XConnection::get_parent(Window child) const
-    {
-        return pimpl->get_parent(child);
-    }
-    //! \sa XConnection::get_parent()
-    xcb_window_t XConnection::Impl::get_parent(xcb_window_t child) const
+    //! \sa Connection::get_parent()
+    xcb_window_t Connection::Impl::get_parent(xcb_window_t child) const
     {
         xcb_query_tree_cookie_t cookie = xcb_query_tree(m_c, child);
         xcb_generic_error_t* error;
@@ -175,12 +82,8 @@ namespace core { namespace X11
         }
     }
 
-    Window XConnection::is_descendant(Window parent, Window child) const
-    {
-        return pimpl->is_descendant(parent, child);
-    }
-    //! \sa XConnection::is_descendant()
-    bool XConnection::Impl::is_descendant( xcb_window_t parent
+    //! \sa Connection::is_descendant()
+    bool Connection::Impl::is_descendant( xcb_window_t parent
                                          , xcb_window_t child
                                          ) const
     {
@@ -198,12 +101,8 @@ namespace core { namespace X11
         return false;
     }
 
-    Window XConnection::get_input_focus() const noexcept
-    {
-        return pimpl->get_input_focus();
-    }
-    //! \sa XConnection::get_input_focus()
-    xcb_window_t XConnection::Impl::get_input_focus() const noexcept
+    //! \sa Connection::get_input_focus()
+    xcb_window_t Connection::Impl::get_input_focus() const noexcept
     {
         // We use the unchecked version here because the
         // X Window System Protocol guarantees that this request
@@ -222,12 +121,8 @@ namespace core { namespace X11
         }
     }
 
-    Window XConnection::get_active_window() const
-    {
-        return pimpl->get_active_window();
-    }
-    //! \sa XConnection::get_active_window()
-    xcb_window_t XConnection::Impl::get_active_window() const
+    //! \sa Connection::get_active_window()
+    xcb_window_t Connection::Impl::get_active_window() const
     {
         auto windows = get_root_windows();
         // Corner cases: 0 and 1 screens.
@@ -256,12 +151,8 @@ namespace core { namespace X11
         }
     }
 
-    unsigned long XConnection::get_pid_window(Window window) const
-    {
-        return pimpl->get_pid_window(window);
-    }
-    //! \sa XConnection::get_pid_window()
-    unsigned long XConnection::Impl::get_pid_window(xcb_window_t window) const
+    //! \sa Connection::get_pid_window()
+    unsigned long Connection::Impl::get_pid_window(xcb_window_t window) const
     {
         auto reply = get_property( window
                                  , m_pid_atom
@@ -274,16 +165,8 @@ namespace core { namespace X11
         return *static_cast<const unsigned long*>(value);
     }
 
-    void XConnection::send_key_combo(const core::KeyCombo& combo, Window window)
-    {
-        pimpl->send_key_combo(combo, window);
-    }
-    void XConnection::send_key_combo(const core::KeyCombo& combo)
-    {
-        pimpl->send_key_combo(combo, XCB_SEND_EVENT_DEST_ITEM_FOCUS);
-    }
-    //! \sa XConnection::send_key_combo()
-    void XConnection::Impl::send_key_combo
+    //! \sa Connection::send_key_combo()
+    void Connection::Impl::send_key_combo
         (const core::KeyCombo& combo
         , xcb_window_t window
         )
@@ -313,12 +196,8 @@ namespace core { namespace X11
         xcb_flush(m_c);
     }
 
-    std::string XConnection::get_window_title(Window window) const
-    {
-        return pimpl->get_window_title(window);
-    }
-    //! \sa XConnection::get_window_title()
-    std::string XConnection::Impl::get_window_title(xcb_window_t window) const
+    //! \sa Connection::get_window_title()
+    std::string Connection::Impl::get_window_title(xcb_window_t window) const
     {
         // Initial guess of ~160 characters for a window title
         // should be conservative enough.
@@ -335,13 +214,8 @@ namespace core { namespace X11
         return std::string(chars);
     }
 
-
-    bool XConnection::window_exists(Window window) const
-    {
-        return pimpl->window_exists(window);
-    }
-    //! \sa XConnection::window_exists()
-    bool XConnection::Impl::window_exists(xcb_window_t window) const
+    //! \sa Connection::window_exists()
+    bool Connection::Impl::window_exists(xcb_window_t window) const
     {
         // Get a property that definitely exists.
         // If there is an error, the cause is the window not existing.
@@ -370,8 +244,6 @@ namespace core { namespace X11
         }
     }
 
-    // Implementation-only member functions
-
     /*!Wrapper around `xcb_intern_atom`.
      *
      * Takes a series of atom names and returns a series of atoms.
@@ -382,7 +254,7 @@ namespace core { namespace X11
      *
      * \throws X11::Error if any atom does not exist.
      */
-    std::vector<xcb_atom_t> XConnection::Impl::intern_atoms
+    std::vector<xcb_atom_t> Connection::Impl::intern_atoms
         ( const std::vector<std::string>& names
         ) const
     {
@@ -436,7 +308,7 @@ namespace core { namespace X11
      *
      * \throws X11::Error if any X11 error occurs.
      */
-    std::unique_ptr<xcb_get_property_reply_t> XConnection::Impl::get_property
+    std::unique_ptr<xcb_get_property_reply_t> Connection::Impl::get_property
         ( xcb_window_t window
         , xcb_atom_t prop
         , xcb_atom_t prop_type
@@ -484,7 +356,7 @@ namespace core { namespace X11
      * \throws X11::Error with its error code set to \a symbol if the
      *         look-up fails.
      */
-    xcb_keycode_t XConnection::Impl::get_key_code(xcb_keysym_t symbol) const
+    xcb_keycode_t Connection::Impl::get_key_code(xcb_keysym_t symbol) const
     {
         // Memoization logic.
         static xcb_keysym_t last_symbol;
@@ -518,7 +390,7 @@ namespace core { namespace X11
      * \param key_code The code of the key which is being pressed or released.
      *
      */
-    void XConnection::Impl::send_fake_input
+    void Connection::Impl::send_fake_input
         ( xcb_window_t window
         , uint8_t type
         , xcb_keycode_t key_code
@@ -534,9 +406,9 @@ namespace core { namespace X11
      *
      * \returns A vector of the root window of each screen of the display.
      *
-     * \sa XConnection::get_active_window()
+     * \sa Connection::get_active_window()
      */
-    std::vector<xcb_window_t> XConnection::Impl::get_root_windows() const noexcept
+    std::vector<xcb_window_t> Connection::Impl::get_root_windows() const noexcept
     {
         std::vector<xcb_window_t> roots;
         const auto* setup = xcb_get_setup(m_c);
@@ -563,9 +435,9 @@ namespace core { namespace X11
      * \throws X11::Error if the passed window does not have the
      *         `_NET_ACTIVE_WINDOW` property.
      *
-     * \sa XConnection::get_active_window()
+     * \sa Connection::get_active_window()
      */
-    xcb_window_t XConnection::Impl::get_active_window_by_root
+    xcb_window_t Connection::Impl::get_active_window_by_root
         (xcb_window_t root
         ) const
     {
@@ -599,9 +471,9 @@ namespace core { namespace X11
      *
      * \throws X11::Error if any call to get_parent() fails.
      *
-     * \sa XConnection::get_active_window(), XConnection::get_parent()
+     * \sa Connection::get_active_window(), Connection::get_parent()
      */
-    xcb_window_t XConnection::Impl::get_any_ancestor
+    xcb_window_t Connection::Impl::get_any_ancestor
         ( std::vector<xcb_window_t> candidates
         , xcb_window_t child
         ) const
@@ -619,4 +491,5 @@ namespace core { namespace X11
         }
         return XCB_WINDOW_NONE;
     }
-} }
+    }
+}

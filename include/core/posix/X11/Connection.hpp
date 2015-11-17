@@ -1,5 +1,5 @@
 /*
- * XConnection.hpp
+ * Connection.hpp
  *
  * Incomplete C++ wrapper around libxdo, mainly for automatic memory
  * management.
@@ -27,7 +27,6 @@
 #pragma once
 
 #include <string>
-#include <stdexcept>
 #include <memory>
 
 // TODO: Maybe it'd be fancy to realize the X11 requests via C++11 futures?
@@ -41,40 +40,6 @@ namespace core
      */
     namespace X11
     {
-        /*!Class of exceptions thrown by XConnection.
-         */
-        class Error : public std::runtime_error
-        {
-        public:
-            /*!Create an instance.
-             *
-             * \param error_code The X11 error code of the error.
-             * \param location   The name of the function which caused
-             *                   the error.
-             */
-            Error(unsigned int error_code, const char* location="") noexcept;
-
-            virtual ~Error() = default;
-
-            /*!Return an explanatory string.
-             *
-             * \returns Pointer to a null-terminated string with
-             *          explanatory information.
-             */
-            virtual const char* what() const noexcept;
-
-            /*!Return the X11 error code of the exception.
-             *
-             * \returns The X11 error code of the exception.
-             */
-            inline unsigned int get_error_code() const noexcept {
-                return m_code;
-            }
-        private:
-            unsigned int m_code;
-            std::string m_what;
-        };
-
         /*!A type that represents an X11 window.
          *
          * The X11 namespace contains its own definition, distinct from
@@ -89,7 +54,7 @@ namespace core
          * usually blocks until a reply has arrived.
          * Errors usually result in an X11::Error being thrown.
          */
-        class XConnection
+        class Connection
         {
         public:
             /*!Create an instance and initialize it.
@@ -113,12 +78,12 @@ namespace core
              *         If connecting to the X server or fetching the
              *         look-up table fails, the error code will be 0.
              */
-            XConnection(const char* display=nullptr);
+            Connection(const char* display=nullptr);
 
             /*!Disconnect from the X server and releases all allocated
              * memory.
              */
-            ~XConnection();
+            ~Connection();
 
             /*!Return the parent of a given window.
              *
