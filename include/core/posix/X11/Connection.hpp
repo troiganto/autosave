@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "Error.hpp"
+
 #include <string>
 #include <memory>
 

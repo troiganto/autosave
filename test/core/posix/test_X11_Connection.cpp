@@ -1,6 +1,6 @@
 
 #include "core/KeyCombo.hpp"
-#include "core/posix/XConnection.hpp"
+#include "core/posix/X11/Connection.hpp"
 #include "core/posix/POpenHelper.hpp"
 
 #include <bandit/bandit.h>
@@ -18,27 +18,27 @@ go_bandit([](){
 
     using namespace core;
 
-    describe("XConnection", [](){
+    describe("Connection", [](){
 
         describe("basically", [](){
 
             it("can be constructed", [](){
-                X11::XConnection x;
+                X11::Connection x;
             });
 
             it("throws if xdo_new fails", [&](){
-                AssertThrows(X11::Error, X11::XConnection {":1337"});
+                AssertThrows(X11::Error, X11::Connection {":1337"});
             });
 
             it("throws when asked for the parent of an invalid window", [&](){
-                X11::XConnection x;
+                X11::Connection x;
                 AssertThrows(X11::Error, x.get_parent(0xdeadbeef));
                 AssertThat(LastException<X11::Error>().get_error_code(),
                            Equals(3 /*XCB_WINDOW*/));
             });
 
             it("throws when asked to send an invalid key", [&](){
-                X11::XConnection x;
+                X11::Connection x;
                 constexpr unsigned int XK_VOID_SYMBOL = 0xffffff;
                 AssertThrows(X11::Error, x.send_key_combo(KeyCombo(XK_VOID_SYMBOL)));
                 AssertThat(LastException<X11::Error>().get_error_code(),
@@ -50,7 +50,7 @@ go_bandit([](){
         describe("active window", [](){
 
             it("gives a window ID", [&](){
-                X11::XConnection x;
+                X11::Connection x;
                 const auto window = x.get_active_window();
                 const auto title = x.get_window_title(window);
 
@@ -59,7 +59,7 @@ go_bandit([](){
             });
 
             it("gives a process ID", [&](){
-                X11::XConnection x;
+                X11::Connection x;
                 const auto window = x.get_active_window();
                 const auto pid = x.get_pid_window(window);
                 // 100 should exclude most system processes.
@@ -71,20 +71,20 @@ go_bandit([](){
         describe("input focus", [](){
 
             it("gives a window ID", [&](){
-                X11::XConnection x;
+                X11::Connection x;
                 const auto window = x.get_input_focus();
                 AssertThat(window, Is().GreaterThan(0));
             });
 
             it("gives the active window or a descendant", [&](){
-                X11::XConnection x;
+                X11::Connection x;
                 const auto focus = x.get_input_focus();
                 const auto active = x.get_active_window();
                 AssertThat(x.is_descendant(focus, active), Equals(active));
             });
 
             it("can't give a window title", [&](){
-                X11::XConnection x;
+                X11::Connection x;
                 const auto window = x.get_input_focus();
                 std::cout << window << std::endl;
                 AssertThat(x.get_window_title(window), Equals(""));
@@ -92,7 +92,7 @@ go_bandit([](){
             });
 
             it("can't give a process ID", [&](){
-                X11::XConnection x;
+                X11::Connection x;
                 const auto window = x.get_input_focus();
                 AssertThrows(X11::Error, x.get_pid_window(window));
             });
@@ -102,7 +102,7 @@ go_bandit([](){
         xdescribe("interacts with gedit and", [&](){
 
             it("can get its PID", [&](){
-                X11::XConnection x;
+                X11::Connection x;
                 POpenHelper poh("gedit & sleep 2s && kill -1 %1");
                 sleep(1);
                 const auto window = x.get_active_window();
@@ -112,7 +112,7 @@ go_bandit([](){
             });
 
             it("recognizes open and closed windows", [&](){
-                X11::XConnection x;
+                X11::Connection x;
                 POpenHelper poh("gedit & sleep 2s && kill -1 %1 2>/dev/null");
                 sleep(1);
                 const auto window = x.get_active_window();
@@ -123,7 +123,7 @@ go_bandit([](){
 
             it("can send key combos", [&](){
                 // Open gedit and get its window.
-                X11::XConnection x;
+                X11::Connection x;
                 POpenHelper poh("gedit & sleep 5s && kill -1 %1");
                 sleep(1);
                 const auto window = x.get_active_window();
