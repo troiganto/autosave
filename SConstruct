@@ -8,6 +8,7 @@ def get_default_env():
         CPPPATH = "./include",
         CXXFLAGS = ["-std=c++14", "-pthread", "-Wall", "-Wextra"],
         #~ CPPFLAGS = ["-DTEST_PROCESS_BY_EXE"],
+        LIBS=[],
         )
 
 def get_test_env(env):
@@ -90,22 +91,19 @@ def declare_test_targets(env):
 
 # Main.
 
-AddOption('--build-debug',
-          dest='build-debug',
-          type='string',
-          nargs=0,
-          action='store',
+AddOption("--build-debug",
+          dest="build-debug",
+          action='store_true',
           help='Build debug version of Autosave')
 VariantDir("build", "src", duplicate=0)
 Default("autosave")
 
 main_env = get_default_env()
-
-if GetOption('clean'):
-    pass
-else:
+if not GetOption('clean'):
     main_env = configure_libs(main_env)
-    configure_debug(main_env, GetOption("build-debug"))
-    test_env = get_test_env(main_env)
-    declare_main_targets(main_env)
-    declare_test_targets(test_env)
+
+configure_debug(main_env, GetOption("build-debug"))
+test_env = get_test_env(main_env)
+
+declare_main_targets(main_env)
+declare_test_targets(test_env)
