@@ -24,6 +24,8 @@
 #include <core/posix/X11/Error.hpp>
 #include <core/posix/X11/ConnectionImpl.hpp>
 
+using std::unique_ptr;
+
 namespace core
 {
     namespace X11
@@ -33,7 +35,7 @@ namespace core
         , m_syms(nullptr)
     {
         // Check connection.
-        int connection_error = xcb_connection_has_error(m_c);
+        const int connection_error = xcb_connection_has_error(m_c);
         if (connection_error) {
             throw Error(connection_error, "xcb_connect");
         }
@@ -64,19 +66,8 @@ namespace core
     xcb_window_t Connection::Impl::get_parent(xcb_window_t child) const
     {
         xcb_query_tree_cookie_t cookie = xcb_query_tree(m_c, child);
-        xcb_generic_error_t* error;
-        xcb_query_tree_reply_t* reply = xcb_query_tree_reply(m_c, cookie, &error);
-        if (reply) {
-            xcb_window_t parent = reply->parent;
-            free(reply);
-            return parent;
-        }
-        else {
-            // This might happen.
-            const int error_code = error->error_code;
-            free(error);
-            throw Error(error_code, "xcb_query_tree");
-        }
+        auto reply = get_reply(xcb_query_tree_reply, cookie, "xcb_query_tree");
+        return reply->parent;
     }
 
     bool Connection::Impl::is_descendant( xcb_window_t parent
@@ -102,18 +93,9 @@ namespace core
         // We use the unchecked version here because the
         // X Window System Protocol guarantees that this request
         // never causes an error.
-        xcb_get_input_focus_cookie_t cookie = xcb_get_input_focus_unchecked(m_c);
-        xcb_get_input_focus_reply_t* reply =
-            xcb_get_input_focus_reply(m_c, cookie, nullptr);
-        if (reply) {
-            xcb_window_t focus = reply->focus;
-            free(reply);
-            return focus;
-        }
-        else {
-            // Practically impossible branch.
-            return 0;
-        }
+        auto cookie = xcb_get_input_focus_unchecked(m_c);
+        auto reply = get_reply(xcb_get_input_focus_reply, cookie, "get_input_focus");
+        return reply->focus;
     }
 
     xcb_window_t Connection::Impl::get_active_window() const
@@ -147,15 +129,12 @@ namespace core
 
     unsigned long Connection::Impl::get_pid_window(xcb_window_t window) const
     {
-        auto reply = get_property( window
-                                 , m_pid_atom
-                                 , XCB_ATOM_CARDINAL
-                                 , sizeof(unsigned long)/4
-                                 );
-        // get_property already checked that reply is not null,
-        // so we don't have to again.
-        const void* value = xcb_get_property_value(reply.get());
-        return *static_cast<const unsigned long*>(value);
+        std::string buffer = get_property( window
+                                         , m_pid_atom
+                                         , XCB_ATOM_CARDINAL
+                                         , sizeof(uint32_t)/4
+                                         );
+        return *reinterpret_cast<const uint32_t*>(buffer.data());
     }
 
     void Connection::Impl::send_key_combo
@@ -190,30 +169,17 @@ namespace core
 
     std::string Connection::Impl::get_window_title(xcb_window_t window) const
     {
-        // Initial guess of ~160 characters for a window title
-        // should be conservative enough.
         constexpr size_t title_length_estimate = 40;
-        auto reply = get_property( window
-                                 , m_win_name_atom
-                                 , 0
-                                 , title_length_estimate
-                                 );
-        // get_property already checked that reply is not null,
-        // so we don't have to again.
-        const void* result = xcb_get_property_value(reply.get());
-        const char* chars = static_cast<const char*>(result);
-        return std::string(chars);
+        return get_property(window, m_win_name_atom, XCB_ATOM_ANY, title_length_estimate);
     }
 
     bool Connection::Impl::window_exists(xcb_window_t window) const
     {
         // Get a property that definitely exists.
         // If there is an error, the cause is the window not existing.
-        xcb_get_property_cookie_t cookie =
-            xcb_get_property(m_c, 0, window, XCB_ATOM_WM_NAME, 0, 0, 0);
+        auto cookie = xcb_get_property(m_c, 0, window, XCB_ATOM_WM_NAME, 0, 0, 0);
         xcb_generic_error_t* error;
-        xcb_get_property_reply_t* reply =
-            xcb_get_property_reply(m_c, cookie, &error);
+        auto* reply = xcb_get_property_reply(m_c, cookie, &error);
         if (reply) {
             // Window exists, no problem.
             free(reply);
@@ -221,7 +187,7 @@ namespace core
         }
         else {
             // Error, check the code.
-            const unsigned int error_code = error->error_code;
+            const auto error_code = error->error_code;
             free(error);
             if (error_code == XCB_WINDOW) {
                 // Error caused by invalid window ID, score!
@@ -234,6 +200,26 @@ namespace core
         }
     }
 
+    template<typename reply_t, typename cookie_t>
+    unique_ptr<reply_t> Connection::Impl::get_reply
+        ( reply_getter_t<reply_t, cookie_t> raw_get_reply
+        , cookie_t cookie
+        , const char* fail_location
+        ) const
+    {
+        xcb_generic_error_t* error { nullptr };
+        unique_ptr<reply_t> reply { raw_get_reply(m_c, cookie, &error) };
+        if (reply != nullptr) {
+            return reply;
+        }
+        else {
+            // This might happen.
+            const auto error_code = error->error_code;
+            free(error);
+            throw Error(error_code, fail_location);
+        }
+    }
+
     std::vector<xcb_atom_t> Connection::Impl::intern_atoms
         ( const std::vector<std::string>& names
         ) const
@@ -243,66 +229,59 @@ namespace core
         std::vector<xcb_intern_atom_cookie_t> cookies;
         cookies.reserve(names.size());
         for (const std::string& name : names) {
-            xcb_intern_atom_cookie_t cookie =
-                xcb_intern_atom(m_c, only_if_exists, name.size(), name.c_str());
+            auto cookie = xcb_intern_atom(m_c, only_if_exists, name.size(), name.c_str());
             cookies.push_back(cookie);
         }
         // Unwrap each atom.
         std::vector<xcb_atom_t> atoms;
-        xcb_generic_error_t* error;
-        xcb_intern_atom_reply_t* reply;
+        unique_ptr<xcb_intern_atom_reply_t> reply;
         size_t i_name = 0;
-        for (const xcb_intern_atom_cookie_t& cookie : cookies) {
-            reply = xcb_intern_atom_reply(m_c, cookie, &error);
-            if (reply) {
+        for (const auto& cookie : cookies) {
+            try {
+                reply = get_reply(xcb_intern_atom_reply, cookie, "");
                 atoms.push_back(reply->atom);
-                free(reply);
             }
-            else {
-                const unsigned int error_code = error->error_code;
-                free(error);
+            catch (const Error& exc) {
                 std::string message = "xcb_intern_atom: " + names[i_name];
-                throw Error(error_code, message.c_str());
+                throw Error(exc.get_error_code(), message.c_str());
             }
-            // The overhead is acceptable because this function is
-            // caled only once.
             ++i_name;
         }
         return atoms;
     }
 
-    std::unique_ptr<xcb_get_property_reply_t> Connection::Impl::get_property
+    std::string Connection::Impl::get_property
         ( xcb_window_t window
         , xcb_atom_t prop
         , xcb_atom_t prop_type
-        , uint32_t prop_len
+        , uint32_t words_per_read
         ) const
     {
-        // Declarations.
+        std::string result;
+        result.reserve(words_per_read * sizeof(uint32_t));
+        size_t words_read = 0;
+
         xcb_get_property_cookie_t cookie;
-        xcb_generic_error_t* error = nullptr;
-        xcb_get_property_reply_t* reply = nullptr;
-        // Loop around until we are sure we got the whole property.
-        while (true) {
-            cookie = xcb_get_property(m_c, 0, window, prop, prop_type, 0, prop_len);
-            reply = xcb_get_property_reply(m_c, cookie, &error);
-            if (!reply) {
-                // An error occured, abort.
-                const unsigned int error_code = error->error_code;
-                free(error);
-                throw Error(error_code, "xcb_get_property");
+        unique_ptr<xcb_get_property_reply_t> reply;
+        do {
+            cookie = xcb_get_property(m_c, 0, window, prop, prop_type,
+                                      words_read, words_per_read);
+            reply = get_reply(xcb_get_property_reply, cookie, "xcb_get_property");
+            if (reply->type == XCB_ATOM_NONE ||
+                (prop_type != XCB_ATOM_ANY && prop_type != reply->type))
+            {
+                throw Error(0, "xcb_get_property");
             }
-            else if (reply->bytes_after > 0) {
-                // We didn't get everything, try again.
-                prop_len += reply->bytes_after;
-            }
-            else {
-                // We got the whole property, break out.
-                break;
-            }
-        }
-        // Conversion to an std::unique_ptr.
-        return std::unique_ptr<xcb_get_property_reply_t>(reply);
+
+            words_read += words_per_read;
+
+            const size_t value_length = xcb_get_property_value_length(reply.get());
+            const void* value = xcb_get_property_value(reply.get());
+            result.append(static_cast<const char*>(value), value_length);
+
+        } while (reply->bytes_after > 0);
+
+        return result;
     }
 
     xcb_keycode_t Connection::Impl::get_key_code(xcb_keysym_t symbol) const
@@ -315,9 +294,10 @@ namespace core
         }
         else {
             // Retrieve key codes of an unknown symbol.
-            std::unique_ptr<xcb_keycode_t[]> keys(
-                xcb_key_symbols_get_keycode(m_syms, symbol));
-            if (!keys) {
+            unique_ptr<xcb_keycode_t[]> keys {
+                xcb_key_symbols_get_keycode(m_syms, symbol)
+                };
+            if (keys == nullptr) {
                 throw Error(symbol, "xcb_key_symbols_get_keycode");
             }
             // Update memo.
@@ -342,10 +322,10 @@ namespace core
     {
         std::vector<xcb_window_t> roots;
         const auto* setup = xcb_get_setup(m_c);
-        int num_screens = xcb_setup_roots_length(setup);
+        size_t num_screens = xcb_setup_roots_length(setup);
 
         auto screen = xcb_setup_roots_iterator(setup);
-        for (int i=0; i<num_screens; ++i) {
+        for (size_t i = 0; i < num_screens; ++i) {
             roots.push_back(screen.data->root);
             xcb_screen_next(&screen);
         }
@@ -356,15 +336,12 @@ namespace core
         (xcb_window_t root
         ) const
     {
-        auto reply = get_property( root
-                                 , m_active_win_atom
-                                 , XCB_ATOM_WINDOW
-                                 , sizeof(xcb_window_t)/4
-                                 );
-        // get_property already checked that reply is not null,
-        // so we don't have to again.
-        const void* value = xcb_get_property_value(reply.get());
-        return *static_cast<const xcb_window_t*>(value);
+        auto buffer = get_property( root
+                                  , m_active_win_atom
+                                  , XCB_ATOM_WINDOW
+                                  , sizeof(xcb_window_t)/4
+                                  );
+        return *reinterpret_cast<const xcb_window_t*>(buffer.data());
     }
 
     xcb_window_t Connection::Impl::get_any_ancestor
