@@ -67,7 +67,7 @@ namespace core
             xcb_window_t get_parent(xcb_window_t child) const;
 
             //! \sa Connection::is_descendant()
-            bool is_descendant(xcb_window_t parent, xcb_window_t child) const;
+            bool is_descendant(xcb_window_t child, xcb_window_t parent) const;
 
             //! \sa Connection::get_input_focus()
             xcb_window_t get_input_focus() const noexcept;

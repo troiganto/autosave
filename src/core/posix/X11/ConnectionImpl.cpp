@@ -70,8 +70,8 @@ namespace core
         return reply->parent;
     }
 
-    bool Connection::Impl::is_descendant( xcb_window_t parent
-                                         , xcb_window_t child
+    bool Connection::Impl::is_descendant( xcb_window_t child
+                                         , xcb_window_t parent
                                          ) const
     {
         if (child == XCB_WINDOW_NONE || parent == XCB_WINDOW_NONE) {
@@ -132,7 +132,7 @@ namespace core
         std::string buffer = get_property( window
                                          , m_pid_atom
                                          , XCB_ATOM_CARDINAL
-                                         , sizeof(uint32_t)/4
+                                         , 1
                                          );
         return *reinterpret_cast<const uint32_t*>(buffer.data());
     }
@@ -169,7 +169,7 @@ namespace core
 
     std::string Connection::Impl::get_window_title(xcb_window_t window) const
     {
-        constexpr size_t title_length_estimate = 40;
+        constexpr size_t title_length_estimate = 160/sizeof(uint32_t);
         return get_property(window, m_win_name_atom, XCB_ATOM_ANY, title_length_estimate);
     }
 
@@ -339,7 +339,7 @@ namespace core
         auto buffer = get_property( root
                                   , m_active_win_atom
                                   , XCB_ATOM_WINDOW
-                                  , sizeof(xcb_window_t)/4
+                                  , sizeof(xcb_window_t)/sizeof(uint32_t)
                                   );
         return *reinterpret_cast<const xcb_window_t*>(buffer.data());
     }

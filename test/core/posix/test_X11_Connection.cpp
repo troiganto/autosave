@@ -76,17 +76,16 @@ go_bandit([](){
                 AssertThat(window, Is().GreaterThan(0));
             });
 
-            it("gives the active window or a descendant", [&](){
+            it("gives the active window or a descendant of it", [&](){
                 X11::Connection x;
                 const auto focus = x.get_input_focus();
                 const auto active = x.get_active_window();
-                AssertThat(x.is_descendant(focus, active), Equals(active));
+                AssertThat(x.is_descendant(focus, active), IsTrue());
             });
 
             it("can't give a window title", [&](){
                 X11::Connection x;
                 const auto window = x.get_input_focus();
-                std::cout << window << std::endl;
                 AssertThat(x.get_window_title(window), Equals(""));
                 //~ AssertThrows(X11::Error, x.get_window_title(window));
             });

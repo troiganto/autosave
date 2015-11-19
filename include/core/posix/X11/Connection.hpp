@@ -110,7 +110,7 @@ namespace core
              * \throws X11::Error if \a child doesn't exist and
              *         `parent != child`.
              */
-            bool is_descendant(Window parent, Window child) const;
+            bool is_descendant(Window child, Window parent) const;
 
             /*!Return the current input focus.
              *

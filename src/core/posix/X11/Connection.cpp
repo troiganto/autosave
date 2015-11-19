@@ -41,9 +41,9 @@ namespace core
             return pimpl->get_parent(child);
         }
 
-        bool Connection::is_descendant(Window parent, Window child) const
+        bool Connection::is_descendant(Window child, Window parent) const
         {
-            return pimpl->is_descendant(parent, child);
+            return pimpl->is_descendant(child, parent);
         }
 
         Window Connection::get_input_focus() const noexcept
