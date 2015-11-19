@@ -113,38 +113,49 @@ namespace core
 
         timer.tick();
         switch (timer.state()) {
+            case Timer::State::WAITING:
+                // If we're waiting, do nothing.
+                // Unless we *just* returned from Timer::State::SUCCESSFUL.
+                // In that case, signal this change of state.
+                if (timer.position() == timer.length()) {
+                    should_signal = true;
+                }
+            case Timer::State::COUNTDOWN:
+                // If we're counting down, always signal.
+                // Furthermore, when we just begin counting down, check
+                // if any window matches our criteria.
+                // Reset the timer if that's not the case.
+                if (timer.position() == Timer::countdown_pos() /*&&
+                    no_window_matches()*/)
+                {
+                    timer.reset();
+                }
+                should_signal = true;
+                break;
             case Timer::State::OVERTIME:
+                // If we're in overtime, check if the active window matches
+                // and send if it does.
+                // If it doesn't, wait for the timer position to underflow
+                // (this happens regularly) and if that has happened,
+                // check if *any* window matches our criteria.
+                // If not, reset the timer.
+                // Signal if sending succeeds or an underflow occured.
                 if (false/*active_window_matches()*/) {
                     /*send();*/
                     timer.succeed();
                     should_signal = true;
                 }
                 else if (timer.position() == Timer::overtime_pos()) {
-                    // This branch is activated periodically due to
-                    // Timer::underflow_pos().
                     if (false/*no_window_matches()*/) {
                         timer.reset();
                     }
                     should_signal = true;
                 }
                 break;
-            case Timer::State::COUNTDOWN:
-                if (timer.position() == Timer::countdown_pos() /*&&
-                    no_window_matches()*/)
-                {
-                    timer.reset();
-                }
-                // In countdown state, we must always signal.
-                // That's the point of counting down.
-                should_signal = true;
-                break;
-            // case Timer::State::WAITING:
             default:
-                if (timer.position() == timer.length()) {
-                    // We have just returned from
-                    // Timer::State::SUCCESSFUL, signal this.
-                    should_signal = true;
-                }
+                // Because timer.tick() is called *before* the switch,
+                // Timer::State::SUCCESSFUL can never occur.
+                break;
         }
         if (should_signal) {
             lock.release();
