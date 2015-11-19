@@ -27,7 +27,10 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <string>
 #include <core/Process.hpp>
+#include <core/KeyCombo.hpp>
 
 namespace core
 {
@@ -41,7 +44,9 @@ namespace core
         Communicator& operator =(Communicator&& rhs);
         ~Communicator();
 
-        Process get_active_process() const;
+        bool active_window_matches(const std::vector<std::string>& target_apps) const;
+        bool any_window_matches(const std::vector<std::string>& target_apps) const;
+        void send(const KeyCombo& key_combo);
 
     private:
         // PIMPL idiom.

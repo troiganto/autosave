@@ -122,6 +122,16 @@ namespace core
          */
         bool verbosity_exceeds(Verbosity minimal) const noexcept;
 
+        //! \returns a reference to the list of `target_apps`.
+        inline std::vector<std::string>& target_apps() noexcept {
+            return m_target_apps;
+        }
+
+        //! \returns a const reference to the list of `target_apps`.
+        inline const std::vector<std::string>& target_apps() const noexcept {
+            return m_target_apps;
+        }
+
     private:
         std::chrono::seconds m_interval;        //!< Seconds after which to send input.
         KeyCombo m_combo;                       //!< Input to be sent.

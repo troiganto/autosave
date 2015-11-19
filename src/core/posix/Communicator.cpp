@@ -26,14 +26,21 @@
 #include "core/Process.hpp"
 #include "core/posix/X11/Connection.hpp"
 
+#include <algorithm>
+#include <functional>
+
 namespace core
 {
     struct Communicator::Impl
     {
     public:
-        Process get_active_process() const;
+        bool active_window_matches(const std::vector<std::string>& target_apps) const;
+        bool any_window_matches(const std::vector<std::string>& target_apps) const;
+        void send(const KeyCombo& key_combo);
 
     private:
+        Process get_active_process() const;
+
         X11::Connection m_xconn;
     };
 
@@ -44,12 +51,49 @@ namespace core
 
     // Forwarding from class to its implementation.
 
-    Process Communicator::get_active_process() const
+    bool Communicator::active_window_matches
+        ( const std::vector<std::string>& target_apps
+        ) const
     {
-        return pimpl->get_active_process();
+        return pimpl->active_window_matches(target_apps);
+    }
+
+    bool Communicator::any_window_matches
+        ( const std::vector<std::string>& target_apps
+        ) const
+    {
+        return pimpl->any_window_matches(target_apps);
+    }
+
+    void Communicator::send(const KeyCombo& key_combo)
+    {
+        pimpl->send(key_combo);
     }
 
     // Actual implementations.
+
+    bool Communicator::Impl::active_window_matches
+        ( const std::vector<std::string>& target_apps
+        ) const
+    {
+        Process active_process = get_active_process();
+        return std::any_of( target_apps.begin()
+                          , target_apps.end()
+                          , std::bind(Process::started_by, active_process)
+                          );
+    }
+
+    bool Communicator::Impl::any_window_matches
+        ( const std::vector<std::string>& target_apps
+        ) const
+    {
+        return false;
+    }
+
+    void Communicator::Impl::send(const KeyCombo& key_combo)
+    {
+        m_xconn.send_key_combo(key_combo);
+    }
 
     Process Communicator::Impl::get_active_process() const
     {

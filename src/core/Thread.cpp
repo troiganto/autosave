@@ -23,6 +23,7 @@
 
 
 #include "core/Thread.hpp"
+#include "core/Communicator.hpp"
 
 #include <stdexcept>
 #include <utility>
@@ -39,6 +40,7 @@ namespace core
                         ) noexcept;
         static void step( const Settings& settings
                         , threadsafe::Pipe<Timer>& pipe
+                        , Communicator& communicator
                         );
     }
 
@@ -83,6 +85,7 @@ namespace core
                        , threadsafe::Pipe<Timer>& timer
                        ) noexcept
     {
+        Communicator communicator;
         auto should_continue = [&req_state](){
             return req_state.value() != Thread::RequestedState::PAUSED;
         };
@@ -95,7 +98,7 @@ namespace core
                     req_state.cv().wait(req_state_lock, should_continue);
                     break;
                 case Thread::RequestedState::RUNNING:
-                    step(settings, timer);
+                    step(settings, timer, communicator);
                     break;
                 default: break;
             }
@@ -105,6 +108,7 @@ namespace core
 
     void bgthread::step( const Settings& settings
                        , threadsafe::Pipe<Timer>& pipe
+                       , Communicator& communicator
                        )
     {
         auto lock = pipe.lock();
@@ -141,7 +145,7 @@ namespace core
                 // If not, reset the timer.
                 // Signal if sending succeeds or an underflow occured.
                 if (false/*active_window_matches()*/) {
-                    /*send();*/
+                    communicator.send(settings.key_combo());
                     timer.succeed();
                     should_signal = true;
                 }
