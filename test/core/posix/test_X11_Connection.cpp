@@ -18,7 +18,7 @@ go_bandit([](){
 
     using namespace core;
 
-    describe("Connection", [](){
+    describe("X11::Connection", [](){
 
         describe("basically", [](){
 
@@ -86,8 +86,9 @@ go_bandit([](){
             it("can't give a window title", [&](){
                 X11::Connection x;
                 const auto window = x.get_input_focus();
-                AssertThat(x.get_window_title(window), Equals(""));
-                //~ AssertThrows(X11::Error, x.get_window_title(window));
+                AssertThrows(X11::Error, x.get_window_title(window));
+                AssertThat(LastException<X11::Error>().get_error_code(),
+                           Equals(0 /*XCB_NONE*/));
             });
 
             it("can't give a process ID", [&](){
