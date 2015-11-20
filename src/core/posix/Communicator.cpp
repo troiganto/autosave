@@ -77,10 +77,10 @@ namespace core
         ) const
     {
         Process active_process = get_active_process();
-        return std::any_of( target_apps.begin()
-                          , target_apps.end()
-                          , std::bind(Process::started_by, active_process)
-                          );
+        auto started_by = std::bind( &Process::started_by
+                                   , active_process, std::placeholders::_1
+                                   );
+        return std::any_of(target_apps.begin(), target_apps.end(), started_by);
     }
 
     bool Communicator::Impl::any_window_matches

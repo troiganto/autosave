@@ -43,10 +43,12 @@ namespace core
         auto atoms = intern_atoms({ "_NET_WM_PID"
                                   , "_NET_WM_NAME"
                                   , "_NET_ACTIVE_WINDOW"
+                                  , "_NET_CLIENT_LIST"
                                   });
         m_pid_atom = atoms[0];
         m_win_name_atom = atoms[1];
         m_active_win_atom = atoms[2];
+        m_client_list_atom = atoms[3];
         // Load key symbols.
         m_syms = xcb_key_symbols_alloc(m_c);
         if (!m_syms) {
@@ -125,6 +127,26 @@ namespace core
                 return active_window;
             }
         }
+    }
+
+    std::vector<Window> Connection::Impl::get_top_level_windows() const
+    {
+        constexpr int expected_number_of_windows = 5;
+        auto roots = get_root_windows();
+        std::vector<Window> windows;
+        for (xcb_window_t root : roots) {
+            const auto buffer = get_property( root, m_client_list_atom
+                                            , XCB_ATOM_ANY
+                                            , expected_number_of_windows
+                                            );
+            const auto num_windows = buffer.size() / sizeof(xcb_window_t);
+            const auto* window_p = reinterpret_cast<const xcb_window_t*>(buffer.data());
+            for (size_t i=0; i<num_windows; ++i) {
+                windows.push_back(*window_p);
+                ++window_p;
+            }
+        }
+        return windows;
     }
 
     unsigned long Connection::Impl::get_pid_window(xcb_window_t window) const

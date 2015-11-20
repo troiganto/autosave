@@ -75,6 +75,9 @@ namespace core
             //! \sa Connection::get_active_window()
             xcb_window_t get_active_window() const;
 
+            //! \a Connection::get_top_level_windows()
+            std::vector<Window> get_top_level_windows() const;
+
             //! \sa Connection::get_pid_window()
             unsigned long get_pid_window(xcb_window_t window) const;
 
@@ -232,6 +235,7 @@ namespace core
             xcb_atom_t m_pid_atom;
             xcb_atom_t m_win_name_atom;
             xcb_atom_t m_active_win_atom;
+            xcb_atom_t m_client_list_atom;
 
             xcb_key_symbols_t* m_syms;
             xcb_keycode_t m_alt_code;

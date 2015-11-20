@@ -56,6 +56,11 @@ namespace core
             return pimpl->get_active_window();
         }
 
+        std::vector<Window> Connection::get_top_level_windows() const
+        {
+            return pimpl->get_top_level_windows();
+        }
+
         unsigned long Connection::get_pid_window(Window window) const
         {
             return pimpl->get_pid_window(window);

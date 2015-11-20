@@ -47,6 +47,27 @@ go_bandit([](){
 
         });
 
+        describe("get_top_level_windows", [](){
+
+            it("gives a list of windows", [](){
+                X11::Connection x;
+                auto windows = x.get_top_level_windows();
+                AssertThat(windows.size(), Is().GreaterThan(1));
+            });
+
+            it("returns, among others, the active window", [](){
+                X11::Connection x;
+                auto windows = x.get_top_level_windows();
+                auto active = x.get_active_window();
+                bool active_in_windows = std::any_of
+                    ( windows.begin(), windows.end()
+                    , [&active](X11::Window window){ return window == active; }
+                    );
+                AssertThat(active_in_windows, IsTrue());
+            });
+
+        });
+
         describe("active window", [](){
 
             it("gives a window ID", [&](){

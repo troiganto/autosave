@@ -28,6 +28,7 @@
 
 #include "Error.hpp"
 
+#include <vector>
 #include <string>
 #include <memory>
 
@@ -147,6 +148,15 @@ namespace core
              * \sa get_active_window()
              */
             Window get_active_window() const;
+
+            /*!Return all top-level windows of all root windows.
+             *
+             * \returns A vector of window IDs.
+             *
+             * \throws X11::Error if the atom `_NET_CLIENT_LIST` is not
+             *         supported by the window manager.
+             */
+            std::vector<Window> get_top_level_windows() const;
 
             /*!Return the ID of the process owning the specified window.
              *
