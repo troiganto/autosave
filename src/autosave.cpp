@@ -28,21 +28,25 @@
 #include <iostream>
 #include <chrono>
 
+using namespace std;
+using namespace std::literals;
+
+void mainloop(const core::Settings& settings)
+{
+    core::Thread thread(settings);
+    thread.start();
+    this_thread::sleep_for(10s);
+}
+
+
 int main()
 {
     using namespace std;
 
-    string input;
     core::Settings settings;
-    settings.interval(std::chrono::seconds(30));
-    cout << "Before Thread started" << endl;
-    {
-        core::Thread thread(settings);
-        thread.start();
-        cout << "After Thread started" << endl;
-        getline(cin, input);
-    }
-    cout << "After Thread stopped" << endl;
-    cout << "\"" << input << "\"" << endl;
+    settings.interval(std::chrono::seconds(5));
+    settings.key_combo(core::KeyCombo('a'));
+    settings.target_apps().push_back("/usr/bin/geany");
+    mainloop(settings);
     return 0;
 }

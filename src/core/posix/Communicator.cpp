@@ -31,15 +31,18 @@
 
 namespace core
 {
+    using namespace std;
+
     struct Communicator::Impl
     {
     public:
-        bool active_window_matches(const std::vector<std::string>& target_apps) const;
-        bool any_window_matches(const std::vector<std::string>& target_apps) const;
+        bool any_window_matches(const vector<string>& target_apps) const;
+        bool active_window_matches(const vector<string>& target_apps) const;
         void send(const KeyCombo& key_combo);
 
     private:
-        Process get_active_process() const;
+        bool window_matches(X11::Window window, const vector<string>& target_apps) const;
+        Process get_process(X11::Window window) const;
 
         X11::Connection m_xconn;
     };
@@ -51,16 +54,12 @@ namespace core
 
     // Forwarding from class to its implementation.
 
-    bool Communicator::active_window_matches
-        ( const std::vector<std::string>& target_apps
-        ) const
+    bool Communicator::active_window_matches(const vector<string>& target_apps) const
     {
         return pimpl->active_window_matches(target_apps);
     }
 
-    bool Communicator::any_window_matches
-        ( const std::vector<std::string>& target_apps
-        ) const
+    bool Communicator::any_window_matches(const vector<string>& target_apps) const
     {
         return pimpl->any_window_matches(target_apps);
     }
@@ -72,21 +71,36 @@ namespace core
 
     // Actual implementations.
 
-    bool Communicator::Impl::active_window_matches
-        ( const std::vector<std::string>& target_apps
+    bool Communicator::Impl::any_window_matches
+        ( const vector<string>& target_apps
         ) const
     {
-        Process active_process = get_active_process();
-        auto started_by = std::bind( &Process::started_by
-                                   , active_process, std::placeholders::_1
-                                   );
-        return std::any_of(target_apps.begin(), target_apps.end(), started_by);
+        for (auto window : m_xconn.get_top_level_windows()) {
+            if (window_matches(window, target_apps)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    bool Communicator::Impl::any_window_matches
-        ( const std::vector<std::string>& target_apps
+    bool Communicator::Impl::active_window_matches
+        ( const vector<string>& target_apps
         ) const
     {
+        return window_matches(m_xconn.get_active_window(), target_apps);
+    }
+
+    bool Communicator::Impl::window_matches
+        ( X11::Window window
+        , const vector<string>& target_apps
+        ) const
+    {
+        auto process = get_process(window);
+        for (const auto& app : target_apps) {
+            if (process.started_by(app)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -95,10 +109,8 @@ namespace core
         m_xconn.send_key_combo(key_combo);
     }
 
-    Process Communicator::Impl::get_active_process() const
+    Process Communicator::Impl::get_process(X11::Window window) const
     {
-        const X11::Window window = m_xconn.get_active_window();
-        const unsigned long pid = m_xconn.get_pid_window(window);
-        return Process(pid);
+        return Process(m_xconn.get_pid_window(window));
     }
 }
