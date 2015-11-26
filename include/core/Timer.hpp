@@ -54,7 +54,7 @@ namespace core
 
         //! The position at which to switch to the State COUNTDOWN.
         static constexpr std::chrono::seconds countdown_pos() {
-            return std::chrono::seconds {5};
+            return std::chrono::seconds {3};
         };
         //! The position at which to switch to the State OVERTIME.
         static constexpr std::chrono::seconds overtime_pos() {
