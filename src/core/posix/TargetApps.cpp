@@ -1,5 +1,5 @@
 /*
- * Communicator.cpp
+ * TargetApps.cpp
  *
  * Copyright 2015 Nico <nico@FARD>
  *
@@ -22,95 +22,133 @@
  */
 
 
-#include "core/Communicator.hpp"
+#include "core/TargetApps.hpp"
 #include "core/Process.hpp"
 #include "core/posix/X11/Connection.hpp"
 
+#include <list>
 #include <algorithm>
 #include <functional>
+
+// Static XConnection -- Either fails to initialize before main() or
+// it's there the whole time.
+static core::X11::Connection x_connection;
 
 namespace core
 {
     using namespace std;
 
-    struct Communicator::Impl
+    struct TargetApps::Impl
     {
     public:
-        bool any_window_matches(const vector<string>& target_apps) const;
-        bool active_window_matches(const vector<string>& target_apps) const;
+        Impl();
+        Impl(initializer_list<string> apps);
+
+        bool any_window_matches() const;
+        bool active_window_matches() const;
         void send(const KeyCombo& key_combo);
 
+        bool operator ==(const Impl& rhs) const noexcept
+        {
+            return m_apps == rhs.m_apps;
+        }
+
+        bool operator !=(const Impl& rhs) const noexcept
+        {
+            return m_apps != rhs.m_apps;
+        }
+
     private:
-        bool window_matches(X11::Window window, const vector<string>& target_apps) const;
-        Process get_process(X11::Window window) const;
+        bool window_matches(X11::Window window) const;
 
-        X11::Connection m_xconn;
+        list<string> m_apps;
     };
-
-    Communicator::Communicator() : pimpl(new Impl) {}
-    Communicator::Communicator(Communicator&&) = default;
-    Communicator& Communicator::operator =(Communicator&&) = default;
-    Communicator::~Communicator() = default;
 
     // Forwarding from class to its implementation.
 
-    bool Communicator::active_window_matches(const vector<string>& target_apps) const
+    TargetApps::TargetApps()
+        : pimpl(make_unique<Impl>())
+    {}
+
+    TargetApps::TargetApps(initializer_list<string> target_apps)
+        : pimpl(make_unique<Impl>(target_apps))
+    {}
+
+    TargetApps::TargetApps(const TargetApps& rhs)
+        : pimpl(make_unique<Impl>(*rhs.pimpl))
+    {}
+
+    TargetApps& TargetApps::operator =(const TargetApps& rhs)
     {
-        return pimpl->active_window_matches(target_apps);
+        if(&rhs != this) {
+            *pimpl = *rhs.pimpl;
+        }
+        return *this;
     }
 
-    bool Communicator::any_window_matches(const vector<string>& target_apps) const
+    TargetApps::TargetApps(TargetApps&&) = default;
+    TargetApps& TargetApps::operator =(TargetApps&&) = default;
+
+    TargetApps::~TargetApps() = default;
+
+    bool TargetApps::active_window_matches() const
     {
-        return pimpl->any_window_matches(target_apps);
+        return pimpl->active_window_matches();
     }
 
-    void Communicator::send(const KeyCombo& key_combo)
+    bool TargetApps::any_window_matches() const
+    {
+        return pimpl->any_window_matches();
+    }
+
+    void TargetApps::send(const KeyCombo& key_combo) const
     {
         pimpl->send(key_combo);
     }
 
+    bool operator ==(const TargetApps& lhs, const TargetApps& rhs) noexcept
+    {
+        return *lhs.pimpl == *rhs.pimpl;
+    }
+
+    bool operator !=(const TargetApps& lhs, const TargetApps& rhs) noexcept
+    {
+        return *lhs.pimpl != *rhs.pimpl;
+    }
+
     // Actual implementations.
 
-    bool Communicator::Impl::any_window_matches
-        ( const vector<string>& target_apps
-        ) const
+    TargetApps::Impl::Impl()
+        : m_apps()
+    {}
+
+    TargetApps::Impl::Impl(initializer_list<string> apps)
+        : m_apps(apps)
+    {}
+
+    void TargetApps::Impl::send(const KeyCombo& key_combo)
     {
-        for (auto window : m_xconn.get_top_level_windows()) {
-            if (window_matches(window, target_apps)) {
-                return true;
-            }
-        }
-        return false;
+        x_connection.send_key_combo(key_combo);
     }
 
-    bool Communicator::Impl::active_window_matches
-        ( const vector<string>& target_apps
-        ) const
+    bool TargetApps::Impl::any_window_matches() const
     {
-        return window_matches(m_xconn.get_active_window(), target_apps);
+        const auto windows = x_connection.get_top_level_windows();
+        return any_of(windows.begin(), windows.end(), [this](auto w) {
+            return this->window_matches(w);
+        });
     }
 
-    bool Communicator::Impl::window_matches
-        ( X11::Window window
-        , const vector<string>& target_apps
-        ) const
+    bool TargetApps::Impl::active_window_matches() const
     {
-        auto process = get_process(window);
-        for (const auto& app : target_apps) {
-            if (process.started_by(app)) {
-                return true;
-            }
-        }
-        return false;
+        return window_matches(x_connection.get_active_window());
     }
 
-    void Communicator::Impl::send(const KeyCombo& key_combo)
+    bool TargetApps::Impl::window_matches(X11::Window window) const
     {
-        m_xconn.send_key_combo(key_combo);
-    }
-
-    Process Communicator::Impl::get_process(X11::Window window) const
-    {
-        return Process(m_xconn.get_pid_window(window));
+        Process process(x_connection.get_pid_window(window));
+        return any_of(m_apps.begin(), m_apps.end(), [&process](const auto& app) {
+            return process.started_by(app);
+        });
     }
 }

@@ -32,6 +32,7 @@
 #include <chrono>
 #include <core/KeyCombo.hpp>
 #include <core/Verbosity.hpp>
+#include <core/TargetApps.hpp>
 
 
 namespace core
@@ -123,24 +124,24 @@ namespace core
         bool verbosity_exceeds(Verbosity minimal) const noexcept;
 
         //! \returns a reference to the list of `target_apps`.
-        inline std::vector<std::string>& target_apps() noexcept {
+        inline TargetApps& target_apps() noexcept {
             return m_target_apps;
         }
 
         //! \returns a const reference to the list of `target_apps`.
-        inline const std::vector<std::string>& target_apps() const noexcept {
+        inline const TargetApps& target_apps() const noexcept {
             return m_target_apps;
         }
 
     private:
-        std::chrono::seconds m_interval;        //!< Seconds after which to send input.
-        KeyCombo m_combo;                       //!< Input to be sent.
-        Verbosity m_verbosity;                  //!< Verbosity level of Autosave.
-        std::vector<std::string> m_target_apps; //!< Apps to which to send hotkey when active.
-        std::string m_cmdline;                  /*!< Command line to execute. Resulting process
-                                                 * becomes lone target of Autosave.
-                                                 * Overrides m_target_apps.
-                                                 */
+        std::chrono::seconds m_interval;  //!< Seconds after which to send input.
+        KeyCombo m_combo;                 //!< Input to be sent.
+        Verbosity m_verbosity;            //!< Verbosity level of Autosave.
+        TargetApps m_target_apps;         //!< Apps to which to send hotkey when active.
+        std::string m_cmdline;  /*!< Command line to execute. Resulting
+                                 * process becomes lone target of Autosave.
+                                 * Overrides m_target_apps.
+                                 */
     };
 
     //! Two Settings objects are considered equal if all of their attributes are equal.

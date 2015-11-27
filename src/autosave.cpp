@@ -46,7 +46,7 @@ int main()
     core::Settings settings;
     settings.interval(std::chrono::seconds(6));
     settings.key_combo(core::KeyCombo('a'));
-    settings.target_apps().push_back("/usr/bin/geany");
+    settings.target_apps() = core::TargetApps{"/usr/bin/geany"};
     mainloop(settings);
     return 0;
 }

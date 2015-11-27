@@ -23,7 +23,6 @@
 
 
 #include "core/Thread.hpp"
-#include "core/Communicator.hpp"
 
 #include <stdexcept>
 #include <utility>
@@ -40,7 +39,6 @@ namespace core
                         ) noexcept;
         static void step( const Settings& settings
                         , threadsafe::Pipe<Timer>& pipe
-                        , Communicator& communicator
                         );
     }
 
@@ -85,7 +83,6 @@ namespace core
                        , threadsafe::Pipe<Timer>& timer
                        ) noexcept
     {
-        Communicator communicator;
         auto should_continue = [&req_state](){
             return req_state.value() != Thread::RequestedState::PAUSED;
         };
@@ -98,7 +95,7 @@ namespace core
                     req_state.cv().wait(req_state_lock, should_continue);
                     break;
                 case Thread::RequestedState::RUNNING:
-                    step(settings, timer, communicator);
+                    step(settings, timer);
                     break;
                 default: break;
             }
@@ -108,11 +105,11 @@ namespace core
 
     void bgthread::step( const Settings& settings
                        , threadsafe::Pipe<Timer>& pipe
-                       , Communicator& communicator
                        )
     {
         auto lock = pipe.lock();
         Timer& timer = pipe.value();
+        const auto& target_apps = settings.target_apps();
         bool should_signal = false;
 
         timer.tick();
@@ -131,7 +128,7 @@ namespace core
                 // if any window matches our criteria.
                 // Reset the timer if that's not the case.
                 if (timer.position() == Timer::countdown_pos() &&
-                    !communicator.any_window_matches(settings.target_apps()))
+                    !target_apps.any_window_matches())
                 {
                     timer.reset();
                 }
@@ -145,13 +142,13 @@ namespace core
                 // check if *any* window matches our criteria.
                 // If not, reset the timer.
                 // Signal if sending succeeds or an underflow occured.
-                if (communicator.active_window_matches(settings.target_apps())) {
-                    communicator.send(settings.key_combo());
+                if (target_apps.active_window_matches()) {
+                    target_apps.send(settings.key_combo());
                     timer.succeed();
                     should_signal = true;
                 }
                 else if (timer.position() == Timer::overtime_pos()) {
-                    if (!communicator.any_window_matches(settings.target_apps())) {
+                    if (!target_apps.any_window_matches()) {
                         timer.reset();
                     }
                     should_signal = true;

@@ -1,5 +1,5 @@
 /*
- * Communicator.hpp
+ * TargetApps.hpp
  *
  * A class to wrap platform-dependent code to interact with other
  * processes.
@@ -27,31 +27,32 @@
 #pragma once
 
 #include <memory>
-#include <vector>
-#include <string>
-#include <core/Process.hpp>
+#include <initializer_list>
 #include <core/KeyCombo.hpp>
 
 namespace core
 {
-    class Communicator
+    class TargetApps
     {
     public:
-        Communicator();
-        Communicator(const Communicator&) = delete;
-        Communicator& operator =(const Communicator&) = delete;
-        Communicator(Communicator&& rhs);
-        Communicator& operator =(Communicator&& rhs);
-        ~Communicator();
+        TargetApps();
+        TargetApps(std::initializer_list<std::string> target_apps);
+        TargetApps(const TargetApps&);
+        TargetApps& operator =(const TargetApps&);
+        TargetApps(TargetApps&&);
+        TargetApps& operator =(TargetApps&&);
+        ~TargetApps();
 
-        bool active_window_matches(const std::vector<std::string>& target_apps) const;
-        bool any_window_matches(const std::vector<std::string>& target_apps) const;
-        void send(const KeyCombo& key_combo);
+        bool active_window_matches() const;
+        bool any_window_matches() const;
+        void send(const KeyCombo& key_combo) const;
+
+        friend bool operator ==(const TargetApps& lhs, const TargetApps& rhs) noexcept;
+        friend bool operator !=(const TargetApps& lhs, const TargetApps& rhs) noexcept;
 
     private:
         // PIMPL idiom.
         class Impl;
         std::unique_ptr<Impl> pimpl;
     };
-
 }
