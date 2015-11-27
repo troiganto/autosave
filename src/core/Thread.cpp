@@ -27,7 +27,6 @@
 
 #include <stdexcept>
 #include <utility>
-#include <iostream>
 
 using namespace std::literals;
 
@@ -131,8 +130,8 @@ namespace core
                 // Furthermore, when we just begin counting down, check
                 // if any window matches our criteria.
                 // Reset the timer if that's not the case.
-                if (timer.position() == Timer::countdown_pos() /*&&
-                    no_window_matches()*/)
+                if (timer.position() == Timer::countdown_pos() &&
+                    !communicator.any_window_matches(settings.target_apps()))
                 {
                     timer.reset();
                 }
@@ -146,13 +145,13 @@ namespace core
                 // check if *any* window matches our criteria.
                 // If not, reset the timer.
                 // Signal if sending succeeds or an underflow occured.
-                if (false/*active_window_matches()*/) {
+                if (communicator.active_window_matches(settings.target_apps())) {
                     communicator.send(settings.key_combo());
                     timer.succeed();
                     should_signal = true;
                 }
                 else if (timer.position() == Timer::overtime_pos()) {
-                    if (false/*no_window_matches()*/) {
+                    if (!communicator.any_window_matches(settings.target_apps())) {
                         timer.reset();
                     }
                     should_signal = true;
