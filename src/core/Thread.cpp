@@ -27,6 +27,7 @@
 
 #include <stdexcept>
 #include <utility>
+#include <iostream>
 
 using namespace std::literals;
 
@@ -124,6 +125,7 @@ namespace core
                 if (timer.position() == timer.length()) {
                     should_signal = true;
                 }
+                break;
             case Timer::State::COUNTDOWN:
                 // If we're counting down, always signal.
                 // Furthermore, when we just begin counting down, check
@@ -162,7 +164,7 @@ namespace core
                 break;
         }
         if (should_signal) {
-            lock.release();
+            lock.unlock();
             pipe.signal();
         }
     }

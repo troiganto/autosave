@@ -35,7 +35,7 @@ void mainloop(const core::Settings& settings)
 {
     core::Thread thread(settings);
     thread.start();
-    this_thread::sleep_for(10s);
+    this_thread::sleep_for(12s);
 }
 
 
@@ -44,7 +44,7 @@ int main()
     using namespace std;
 
     core::Settings settings;
-    settings.interval(std::chrono::seconds(5));
+    settings.interval(std::chrono::seconds(6));
     settings.key_combo(core::KeyCombo('a'));
     settings.target_apps().push_back("/usr/bin/geany");
     mainloop(settings);
