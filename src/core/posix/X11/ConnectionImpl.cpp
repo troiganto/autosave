@@ -308,27 +308,15 @@ namespace core
 
     xcb_keycode_t Connection::Impl::get_key_code(xcb_keysym_t symbol) const
     {
-        // Memoization logic.
-        static xcb_keysym_t last_symbol;
-        static xcb_keycode_t last_keycode;
-        if (symbol == last_symbol) {
-            return last_keycode;
+        unique_ptr<xcb_keycode_t[]> keys {
+            xcb_key_symbols_get_keycode(m_syms, symbol)
+            };
+        if (!keys) {
+            throw Error(symbol, "xcb_key_symbols_get_keycode");
         }
-        else {
-            // Retrieve key codes of an unknown symbol.
-            unique_ptr<xcb_keycode_t[]> keys {
-                xcb_key_symbols_get_keycode(m_syms, symbol)
-                };
-            if (keys == nullptr) {
-                throw Error(symbol, "xcb_key_symbols_get_keycode");
-            }
-            // Update memo.
-            last_symbol = symbol;
-            last_keycode = keys[0];
-            // We are only interested in the first code.
-            // It may be XCB_NO_SYMBOL.
-            return last_keycode;
-        }
+        // We are only interested in the first code.
+        // It may be XCB_NO_SYMBOL.
+        return keys[0];
     }
 
     void Connection::Impl::send_fake_input
