@@ -11,6 +11,13 @@ def get_default_env():
         LIBS=[],
         )
 
+def configure_debug(env, is_debug):
+    """Set flags, etc. which depend on whether we build for debugging."""
+    if is_debug:
+        env.Append(CXXFLAGS=["-g"], CPPFLAGS=["-D_DEBUG"])
+    else:
+        env.Append(CXXFLAGS=["-O2", "-flto"], CPPFLAGS=["-DNDEBUG"])
+
 def get_test_env(env):
     """Return an environment for unit test building derived from `env`."""
     # Note that libautosave is prepended, not appended.
@@ -31,13 +38,6 @@ def configure_libs(env, libs):
             print "\t" + lib
         Exit(1)
     return conf.Finish()
-
-def configure_debug(env, is_debug):
-    """Set flags, etc. which depend on whether we build for debugging."""
-    if is_debug:
-        env.Append(CXXFLAGS=["-g"], CPPFLAGS=["-D_DEBUG"])
-    else:
-        env.Append(CXXFLAGS=["-O2", "-flto"], CPPFLAGS=["-DNDEBUG"])
 
 def get_main_sources(env):
     """Return list of source files for the main program.
@@ -100,10 +100,10 @@ VariantDir("build", "src", duplicate=0)
 Default("autosave")
 
 main_env = get_default_env()
+configure_debug(main_env, GetOption("build-debug"))
 if not GetOption('clean'):
     configure_libs(main_env, ["pthread", "xcb", "xcb-keysyms", "xcb-xtest"])
 
-configure_debug(main_env, GetOption("build-debug"))
 test_env = get_test_env(main_env)
 
 declare_main_targets(main_env)
