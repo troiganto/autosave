@@ -36,6 +36,9 @@ namespace core
     {
     public:
 
+        //! Create an object representing the calling process.
+        Process();
+
         //! Convert a platform-dependent integer into a Process object.
         explicit Process(unsigned long pid);
 

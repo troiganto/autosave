@@ -25,6 +25,7 @@
 #include "core/Process.hpp"
 #include "core/posix/POpenHelper.hpp"
 
+#include <unistd.h>
 #include <string>
 #include <fstream>
 #include <stdexcept>
@@ -34,7 +35,8 @@ namespace core
     struct Process::Impl
     {
         //! \sa Process::Process()
-        Impl(unsigned long pid) noexcept : m_pid(pid) {}
+        Impl() noexcept : m_pid(getpid()) {}
+        explicit Impl(unsigned long pid) noexcept : m_pid(pid) {}
         Impl(const Impl& rhs) noexcept = default;
         Impl(Impl&& rhs) noexcept = default;
         Impl& operator =(const Impl& ehs) noexcept = default;
@@ -48,6 +50,10 @@ namespace core
     };
 
 
+
+    Process::Process()
+        : pimpl(std::make_unique<Impl>())
+    {}
 
     Process::Process(unsigned long pid)
         : pimpl(std::make_unique<Impl>(pid))
@@ -107,6 +113,7 @@ namespace core
      */
     bool Process::Impl::started_by(const std::string& application) const
     {
+        // TODO: Only do Linux and Windows for now, everyone else can go suck a dick.
         #ifdef TEST_PROCESS_BY_PS
             POpenHelper poh("ps -p "+std::to_string(m_pid)+" -o comm=");
             std::string my_app_prefix = poh.get_output();
