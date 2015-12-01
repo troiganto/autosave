@@ -16,13 +16,13 @@ go_bandit([](){
         using core::Timer;
 
         it("throw when constructed with an invalid length", [&](){
-            AssertThrows(std::out_of_range, Timer {5s});
+            AssertThrows(std::out_of_range, Timer {3s});
             AssertThrows(std::out_of_range, Timer {Timer::countdown_pos()});
             AssertThrows(std::out_of_range, Timer {-5s});
         });
 
-        it("go into countdown 5 seconds before 0.", [&](){
-            Timer timer {7s};
+        it("go into countdown 3 seconds before 0.", [&](){
+            Timer timer {5s};
             timer.tick();
             Assert::That(timer.state(), Equals(Timer::State::WAITING));
             timer.tick();

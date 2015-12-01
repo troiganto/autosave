@@ -8,7 +8,7 @@ go_bandit([](){
 
     using core::Process;
 
-    describe("The Process class", [](){
+    xdescribe("The Process class", [](){
 
         it("can get the calling process.", [&](){
             Process proc;
