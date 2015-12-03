@@ -5,7 +5,7 @@ def get_default_env():
     """Return a default environment."""
     return Environment(
         ENV = os.environ,
-        CPPPATH = "./include",
+        CPPPATH = "#./include",
         CXXFLAGS = ["-std=c++14", "-pthread", "-Wall", "-Wextra"],
         #~ CPPFLAGS = ["-DTEST_PROCESS_BY_EXE"],
         LIBS=[],
@@ -36,30 +36,6 @@ def configure_libs(env, libs):
         Exit(1)
     return conf.Finish()
 
-def get_main_sources(env):
-    """Return list of source files for the main program.
-
-    This does not include the main file autosave.cpp.
-    """
-    platform_path = "build/*/{}/".format(env["PLATFORM"])
-    result = ["build/autosave.cpp"]
-    result.extend(Glob("build/core/*.cpp"))
-    result.extend(Glob(platform_path + "*.cpp"))
-    result.extend(Glob(platform_path + "*/*.cpp"))
-    return result
-
-def get_test_sources(env):
-    """Return list of source files for unit tests.
-
-    This does include the main file specs.cpp.
-    """
-    platform_path = "test/*/{}/".format(env["PLATFORM"])
-    result = ["test/specs.cpp"]
-    result.extend(Glob("test/core/*.cpp"))
-    result.extend(Glob(platform_path + "*.cpp"))
-    result.extend(Glob(platform_path + "*/*.cpp"))
-    return result
-
 
 # Define settings.
 
@@ -67,14 +43,16 @@ AddOption("--build-debug",
           dest="build-debug",
           action='store_true',
           help='Build debug version of Autosave')
-VariantDir("build", "src", duplicate=0)
+VariantDir("build", "src")
+VariantDir("build-tests", "test")
 
 # Deckare phony default target.
 
 Default("all")
-Depends(
+Command(
     target = "all",
-    dependency = ["autosave", "run_tests"],
+    source = ["autosave", "run_tests"],
+    action = "",
     )
 
 # Declare main targets.
@@ -84,7 +62,7 @@ configure_debug(main_env, GetOption("build-debug"))
 if not GetOption('clean'):
     configure_libs(main_env, ["pthread", "xcb", "xcb-keysyms", "xcb-xtest"])
 
-main_sources = get_main_sources(main_env)
+main_sources = SConscript("build/SConscript", exports="main_env")
 main_env.Program(
     target = "autosave",
     source = main_sources,
@@ -107,5 +85,5 @@ test_env.Command(
 
 test_env.Program(
     target = runner,
-    source = get_test_sources(test_env),
+    source = SConscript("build-tests/SConscript", exports="test_env"),
     )

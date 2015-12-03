@@ -1,0 +1,11 @@
+
+Import("test_env")
+
+platform_path = "*/{}/".format(test_env["PLATFORM"])
+result = ["specs.cpp"]
+result.extend(Glob("core/*.cpp"))
+result.extend(Glob(platform_path + "*.cpp"))
+result.extend(Glob(platform_path + "*/*.cpp"))
+result = map(test_env.Object, result)
+
+Return("result")

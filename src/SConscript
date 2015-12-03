@@ -1,0 +1,11 @@
+
+Import("main_env")
+
+platform_path = "*/{}/".format(main_env["PLATFORM"])
+result = ["autosave.cpp"]
+result.extend(Glob("core/*.cpp"))
+result.extend(Glob(platform_path + "*.cpp"))
+result.extend(Glob(platform_path + "*/*.cpp"))
+result = map(main_env.Object, result)
+
+Return("result")
