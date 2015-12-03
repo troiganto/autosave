@@ -60,31 +60,6 @@ def get_test_sources(env):
     result.extend(Glob(platform_path + "*/*.cpp"))
     return result
 
-def declare_main_targets(env):
-    """Declare targets autosave and libautosave.a."""
-    sources = get_main_sources(main_env)
-    main_env.Program(
-        target = "autosave",
-        source = sources,
-        )
-    main_env.StaticLibrary(
-        target = "build/libautosave.a",
-        source = sources[1:],  # Ignore autosave.cpp.
-        )
-
-def declare_test_targets(env):
-    """Declare targets specs and run_tests."""
-    runner = "test/specs"
-    test_env.Command(
-        target="run_tests",
-        source = runner,
-        action = runner,
-        )
-
-    test_env.Program(
-        target = runner,
-        source = get_test_sources(test_env),
-        )
 
 
 # Main.
@@ -101,7 +76,28 @@ configure_debug(main_env, GetOption("build-debug"))
 if not GetOption('clean'):
     configure_libs(main_env, ["pthread", "xcb", "xcb-keysyms", "xcb-xtest"])
 
+main_sources = get_main_sources(main_env)
+main_env.Program(
+    target = "autosave",
+    source = main_sources,
+    )
+main_env.StaticLibrary(
+    target = "build/libautosave.a",
+    source = main_sources[1:],  # Ignore autosave.cpp.
+    )
+
+# Declare test targets.
+
 test_env = get_test_env(main_env)
 
-declare_main_targets(main_env)
-declare_test_targets(test_env)
+runner = "test/specs"
+test_env.Command(
+    target="run_tests",
+    source = runner,
+    action = runner,
+    )
+
+test_env.Program(
+    target = runner,
+    source = get_test_sources(test_env),
+    )
