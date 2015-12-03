@@ -20,12 +20,9 @@ def configure_debug(env, is_debug):
 
 def get_test_env(env):
     """Return an environment for unit test building derived from `env`."""
-    # Note that libautosave is prepended, not appended.
-    result = env.Clone(LIBS=["autosave"])
-    result.Append(
-        LIBPATH = ["./build"],  # So that libautosave is found.
-        LIBS = env["LIBS"],
-        )
+    result = env.Clone()
+    result.Prepend(LIBS=["autosave"])   # libautosave must be *prepended*.
+    result.Append(LIBPATH=["./build"])  # So that libautosave is found.
     return result
 
 def configure_libs(env, libs):
