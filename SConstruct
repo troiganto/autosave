@@ -61,15 +61,23 @@ def get_test_sources(env):
     return result
 
 
-
-# Main.
+# Define settings.
 
 AddOption("--build-debug",
           dest="build-debug",
           action='store_true',
           help='Build debug version of Autosave')
 VariantDir("build", "src", duplicate=0)
-Default("autosave")
+
+# Deckare phony default target.
+
+Default("all")
+Depends(
+    target = "all",
+    dependency = ["autosave", "run_tests"],
+    )
+
+# Declare main targets.
 
 main_env = get_default_env()
 configure_debug(main_env, GetOption("build-debug"))
