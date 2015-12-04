@@ -1,4 +1,3 @@
-
 import os
 
 def get_default_env():
@@ -21,8 +20,8 @@ def configure_debug(env, is_debug):
 def get_test_env(env):
     """Return an environment for unit test building derived from `env`."""
     result = env.Clone()
-    result.Prepend(LIBS=["autosave"])   # libautosave must be *prepended*.
-    result.Append(LIBPATH=["./build"])  # So that libautosave is found.
+    #~ result.Prepend(LIBS=["autosave"])   # libautosave must be *prepended*.
+    #~ result.Append(LIBPATH=["./build"])  # So that libautosave is found.
     return result
 
 def configure_libs(env, libs):
@@ -46,15 +45,6 @@ AddOption("--build-debug",
 VariantDir("build", "src")
 VariantDir("build-tests", "test")
 
-# Deckare phony default target.
-
-Default("all")
-Command(
-    target = "all",
-    source = ["autosave", "run_tests"],
-    action = "",
-    )
-
 # Declare main targets.
 
 main_env = get_default_env()
@@ -62,28 +52,19 @@ configure_debug(main_env, GetOption("build-debug"))
 if not GetOption('clean'):
     configure_libs(main_env, ["pthread", "xcb", "xcb-keysyms", "xcb-xtest"])
 
-main_sources = SConscript("build/SConscript", exports="main_env")
-main_env.Program(
-    target = "autosave",
-    source = main_sources,
-    )
-main_env.StaticLibrary(
-    target = "build/libautosave.a",
-    source = main_sources[1:],  # Ignore autosave.cpp.
-    )
+libautosave, autosave = SConscript("build/SConscript", exports="main_env")
 
 # Declare test targets.
 
 test_env = get_test_env(main_env)
+specs, run = SConscript("build-tests/SConscript", exports="test_env libautosave")
 
-runner = "test/specs"
-test_env.Command(
-    target="run_tests",
-    source = runner,
-    action = runner,
+# Deckare phony default target.
+
+Default("all")
+Command(
+    target = "all",
+    source = [autosave, run],
+    action = "",
     )
 
-test_env.Program(
-    target = runner,
-    source = SConscript("build-tests/SConscript", exports="test_env"),
-    )

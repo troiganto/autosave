@@ -1,0 +1,7 @@
+
+Import("test_env")
+
+sources = Glob("*.cpp")
+objects = [test_env.Object(source) for source in sources]
+
+Return("objects")

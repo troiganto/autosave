@@ -1,11 +1,25 @@
+import os
 
 Import("test_env")
+Import("libautosave")
 
-platform_path = "*/{}/".format(test_env["PLATFORM"])
-result = ["specs.cpp"]
-result.extend(Glob("core/*.cpp"))
-result.extend(Glob(platform_path + "*.cpp"))
-result.extend(Glob(platform_path + "*/*.cpp"))
-result = map(test_env.Object, result)
+objects = [test_env.Object("specs.cpp")]
+for module in ["core"]:
+    objects.extend(SConscript(
+        os.path.join(module, "SConscript"),
+        exports="test_env",
+        ))
 
+specs = test_env.Program(
+    target = "specs",
+    source = objects + [libautosave],
+    )
+
+run = test_env.Command(
+    target="#run-tests",
+    source = specs,
+    action = "./$SOURCE",
+    )
+
+result = [specs, run]
 Return("result")

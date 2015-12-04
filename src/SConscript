@@ -1,11 +1,25 @@
+import os
 
 Import("main_env")
 
-platform_path = "*/{}/".format(main_env["PLATFORM"])
-result = ["autosave.cpp"]
-result.extend(Glob("core/*.cpp"))
-result.extend(Glob(platform_path + "*.cpp"))
-result.extend(Glob(platform_path + "*/*.cpp"))
-result = map(main_env.Object, result)
+main_object = main_env.Object("autosave.cpp")
 
+other_objects = []
+for module in ["core"]:
+    other_objects.extend(SConscript(
+        os.path.join(module, "SConscript"),
+        exports="main_env",
+        ))
+
+libautosave = main_env.StaticLibrary(
+    target = "autosave",
+    source = other_objects,
+    )
+
+program = main_env.Program(
+    target = "autosave",
+    source = [main_object, libautosave],
+    )
+
+result = [libautosave, program]
 Return("result")

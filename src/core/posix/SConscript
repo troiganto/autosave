@@ -1,0 +1,7 @@
+
+Import("main_env")
+
+sources = Glob("*.cpp") + Glob("X11/*.cpp")
+objects = [main_env.Object(source) for source in sources]
+
+Return("objects")
