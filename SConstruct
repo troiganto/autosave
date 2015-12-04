@@ -10,12 +10,12 @@ def get_default_env():
         LIBS=[],
         )
 
-def configure_debug(env, is_debug):
+def configure_release(env, is_release):
     """Set flags, etc. which depend on whether we build for debugging."""
-    if is_debug:
-        env.Append(CXXFLAGS=["-g"], CPPFLAGS=["-D_DEBUG"])
-    else:
+    if is_release:
         env.Append(CXXFLAGS=["-O2", "-flto"], CPPFLAGS=["-DNDEBUG"])
+    else:
+        env.Append(CXXFLAGS=["-g"], CPPFLAGS=["-D_DEBUG"])
 
 def configure_libs(env, libs):
     """Check for necessary libs, return the configured environment."""
@@ -31,17 +31,17 @@ def configure_libs(env, libs):
 
 # Define settings.
 
-AddOption("--build-debug",
-          dest="build-debug",
+AddOption("--release",
+          dest="release",
           action="store_true",
-          help="Build debug version of Autosave")
+          help="Build release version of Autosave")
 VariantDir("build", "src")
 VariantDir("build-tests", "tests")
 
 # Configure environment.
 
 main_env = get_default_env()
-configure_debug(main_env, GetOption("build-debug"))
+configure_release(main_env, GetOption("release"))
 if not GetOption('clean'):
     configure_libs(main_env, ["pthread", "xcb", "xcb-keysyms", "xcb-xtest"])
 
