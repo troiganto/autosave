@@ -7,7 +7,7 @@ autosave
 .sconsign.dblite
 .sconf_temp
 config.log
-test/specs
+tests/specs
 *.o
 *.a
 

@@ -36,7 +36,7 @@ AddOption("--build-debug",
           action="store_true",
           help="Build debug version of Autosave")
 VariantDir("build", "src")
-VariantDir("build-tests", "test")
+VariantDir("build-tests", "tests")
 
 # Configure environment.
 
