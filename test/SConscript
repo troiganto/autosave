@@ -1,21 +1,21 @@
 import os
 
-Import("test_env")
+Import("main_env")
 Import("libautosave")
 
-objects = [test_env.Object("specs.cpp")]
+objects = [main_env.Object("specs.cpp")]
 for module in ["core"]:
     objects.extend(SConscript(
         os.path.join(module, "SConscript"),
-        exports="test_env",
+        exports="main_env",
         ))
 
-specs = test_env.Program(
+specs = main_env.Program(
     target = "specs",
     source = objects + [libautosave],
     )
 
-run = test_env.Command(
+run = main_env.Command(
     target="#run-tests",
     source = specs,
     action = "./$SOURCE",

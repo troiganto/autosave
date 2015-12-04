@@ -1,7 +1,7 @@
 
-Import("test_env")
+Import("main_env")
 
 sources = Glob("*.cpp")
-objects = [test_env.Object(source) for source in sources]
+objects = [main_env.Object(source) for source in sources]
 
 Return("objects")

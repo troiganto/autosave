@@ -1,13 +1,13 @@
 import os
 
-Import("test_env")
+Import("main_env")
 
 sources = Glob("*.cpp")
-objects = [test_env.Object(source) for source in sources]
+objects = [main_env.Object(source) for source in sources]
 
 platform_specific = SConscript(
-    os.path.join(test_env["PLATFORM"], "SConscript"),
-    exports="test_env",
+    os.path.join(main_env["PLATFORM"], "SConscript"),
+    exports="main_env",
     )
 objects.extend(platform_specific)
 

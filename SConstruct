@@ -56,8 +56,8 @@ libautosave, autosave = SConscript("build/SConscript", exports="main_env")
 
 # Declare test targets.
 
-test_env = get_test_env(main_env)
-specs, run = SConscript("build-tests/SConscript", exports="test_env libautosave")
+#~ test_env = get_test_env(main_env)
+specs, run = SConscript("build-tests/SConscript", exports=["main_env", "libautosave"])
 
 # Deckare phony default target.
 
